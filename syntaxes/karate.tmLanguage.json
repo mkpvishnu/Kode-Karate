@@ -1,0 +1,84 @@
+{
+    "name": "Karate",
+    "scopeName": "source.karate",
+    "fileTypes": ["feature"],
+    "patterns": [
+        {
+            "match": "^\\s*(Feature:|Scenario:|Background:|Scenario Outline:|Examples:)",
+            "name": "keyword.control.karate"
+        },
+        {
+            "match": "^\\s*(Given|When|Then|And|But)\\b",
+            "name": "keyword.gherkin.karate"
+        },
+        {
+            "match": "\\b(def|path|url|method|status|match|assert|contains|print|read|callonce|call)\\b",
+            "name": "support.function.karate"
+        },
+        {
+            "begin": "#",
+            "end": "$",
+            "name": "comment.line.number-sign.karate"
+        },
+        {
+            "begin": "\"",
+            "end": "\"",
+            "name": "string.quoted.double.karate"
+        },
+        {
+            "begin": "'",
+            "end": "'",
+            "name": "string.quoted.single.karate"
+        },
+        {
+            "match": "\\b(true|false|null)\\b",
+            "name": "constant.language.karate"
+        },
+        {
+            "match": "\\b\\d+(\\.\\d+)?\\b",
+            "name": "constant.numeric.karate"
+        },
+        {
+            "begin": "\\{",
+            "end": "\\}",
+            "patterns": [
+                {
+                    "include": "#json-content"
+                }
+            ],
+            "name": "meta.structure.dictionary.json.karate"
+        }
+    ],
+    "repository": {
+        "json-content": {
+            "patterns": [
+                {
+                    "match": "\"([^\"]*)\"\\s*:",
+                    "name": "string.quoted.double.json.key.karate"
+                },
+                {
+                    "include": "#string"
+                },
+                {
+                    "include": "#constant"
+                },
+                {
+                    "include": "#number"
+                }
+            ]
+        },
+        "string": {
+            "begin": "\"",
+            "end": "\"",
+            "name": "string.quoted.double.json.value.karate"
+        },
+        "constant": {
+            "match": "\\b(true|false|null)\\b",
+            "name": "constant.language.json.karate"
+        },
+        "number": {
+            "match": "-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?",
+            "name": "constant.numeric.json.karate"
+        }
+    }
+}
