@@ -66,12 +66,18 @@ class KarateRunner {
                     cwd: workspaceFolder.uri.fsPath
                 });
                 let testFailed = false;
-                let isCollectingJson = false;
-                let jsonOutput = '';
+                let buffer = '';
                 process.stdout.on('data', (data) => {
-                    const output = data.toString();
-                    const lines = output.split('\n');
-                    this.processExtensionOutput(lines, testFailed, isCollectingJson, jsonOutput);
+                    buffer += data.toString();
+                    let lines = buffer.split('\n');
+                    // Keep the last incomplete line in the buffer
+                    if (!buffer.endsWith('\n')) {
+                        buffer = lines.pop() || '';
+                    }
+                    else {
+                        buffer = '';
+                    }
+                    this.processExtensionOutput(lines);
                 });
                 process.stderr.on('data', (data) => {
                     this.outputChannel.appendLine('\n⚠️ Error:');
@@ -79,6 +85,10 @@ class KarateRunner {
                     testFailed = true;
                 });
                 process.on('close', async (code) => {
+                    // Process any remaining buffer
+                    if (buffer) {
+                        this.processExtensionOutput([buffer]);
+                    }
                     this.outputChannel.appendLine('\n' + '='.repeat(80));
                     if (code !== 0 || testFailed) {
                         this.outputChannel.appendLine('❌ Test Failed');
@@ -91,8 +101,6 @@ class KarateRunner {
                         resolve();
                     }
                     this.outputChannel.appendLine('='.repeat(80) + '\n');
-                    const reportPath = (0, scenarioUtils_1.getReportPath)(workspaceFolder);
-                    (0, scenarioUtils_1.openReport)(reportPath);
                     if (this.featureExplorerProvider?.view) {
                         await this.featureExplorerProvider.view.render();
                     }
@@ -103,39 +111,79 @@ class KarateRunner {
             }
         });
     }
-    processExtensionOutput(lines, testFailed, isCollectingJson, jsonOutput) {
+    processExtensionOutput(lines) {
+        let isCollectingJson = false;
+        let jsonBuffer = '';
         lines.forEach((line) => {
+            // Remove ANSI color codes
             line = line.replace(/\u001b\[\d+m/g, '').trim();
             if (!line)
                 return;
-            if (line.includes('match failed')) {
-                testFailed = true;
-                this.outputChannel.appendLine('❌ ' + line);
+            // Handle print statements
+            if (line.includes('* print')) {
+                this.outputChannel.appendLine('\n🖨️ Print Output:');
+                const printContent = line.substring(line.indexOf('* print') + 7).trim();
+                this.tryParseAndFormatJson(printContent);
+                return;
             }
-            else if (this.isStepLine(line)) {
-                this.outputChannel.appendLine('\n► ' + line);
+            // Handle Karate logs
+            if (line.includes('* karate.log')) {
+                this.outputChannel.appendLine('\n📝 Karate Log:');
+                const logContent = line.substring(line.indexOf('* karate.log') + 12).trim();
+                this.tryParseAndFormatJson(logContent);
+                return;
             }
-            else if (line.includes('Response:')) {
-                this.outputChannel.appendLine('\n🔍 Response:');
+            // Handle HTTP Request
+            if (line.toLowerCase().includes('request:')) {
+                this.outputChannel.appendLine('\n📤 Request:');
                 isCollectingJson = true;
-                jsonOutput = '';
+                jsonBuffer = '';
+                return;
             }
-            else if (isCollectingJson && this.isJsonLine(line)) {
-                this.handleJsonOutput(line, jsonOutput, isCollectingJson);
+            // Handle HTTP Response
+            if (line.toLowerCase().includes('response:')) {
+                this.outputChannel.appendLine('\n📥 Response:');
+                isCollectingJson = true;
+                jsonBuffer = '';
+                return;
             }
-            else if (this.isTestSummaryLine(line)) {
-                this.handleTestSummary(line, testFailed);
+            // Collect JSON content
+            if (isCollectingJson) {
+                if (this.isJsonContent(line)) {
+                    jsonBuffer += line + '\n';
+                    if (this.isJsonComplete(jsonBuffer)) {
+                        this.tryParseAndFormatJson(jsonBuffer);
+                        isCollectingJson = false;
+                        jsonBuffer = '';
+                    }
+                }
+                else {
+                    if (jsonBuffer) {
+                        this.tryParseAndFormatJson(jsonBuffer);
+                    }
+                    isCollectingJson = false;
+                    jsonBuffer = '';
+                    this.outputChannel.appendLine(line);
+                }
+                return;
             }
-            else if (line.startsWith('* print')) {
-                this.outputChannel.appendLine('\n🖨️ ' + line);
+            // Handle test failures
+            if (line.includes('match failed')) {
+                this.outputChannel.appendLine('\n❌ ' + line);
+                return;
             }
-            else if (line.startsWith('* karate.log')) {
-                this.outputChannel.appendLine('\n📝 ' + line);
+            // Handle test steps
+            if (this.isStepLine(line)) {
+                this.outputChannel.appendLine('\n► ' + line);
+                return;
             }
-            else if (isCollectingJson) {
-                jsonOutput += line + '\n';
+            // Handle test summary
+            if (this.isTestSummaryLine(line)) {
+                this.outputChannel.appendLine('\n📊 ' + line);
+                return;
             }
-            else if (!this.isFilteredLine(line)) {
+            // Output other lines
+            if (!this.isFilteredLine(line)) {
                 this.outputChannel.appendLine(line);
             }
         });
@@ -145,35 +193,48 @@ class KarateRunner {
             line.startsWith('Then ') || line.startsWith('And ') ||
             line.startsWith('* ');
     }
-    isJsonLine(line) {
-        return line.startsWith('{') || line.startsWith('}');
+    isJsonContent(line) {
+        return line.trim().startsWith('{') ||
+            line.trim().startsWith('[') ||
+            line.trim().startsWith('"') ||
+            line.trim().endsWith('}') ||
+            line.trim().endsWith(']');
+    }
+    isJsonComplete(json) {
+        try {
+            JSON.parse(json.trim());
+            return true;
+        }
+        catch {
+            return false;
+        }
+    }
+    tryParseAndFormatJson(content) {
+        try {
+            // Remove any leading/trailing quotes if they exist
+            let jsonStr = content.trim();
+            if (jsonStr.startsWith("'") && jsonStr.endsWith("'")) {
+                jsonStr = jsonStr.slice(1, -1);
+            }
+            const parsed = JSON.parse(jsonStr);
+            this.outputChannel.appendLine(JSON.stringify(parsed, null, 2));
+        }
+        catch {
+            this.outputChannel.appendLine(content);
+        }
     }
     isTestSummaryLine(line) {
-        return line.includes('scenarios:') && line.includes('failed:');
+        return line.includes('scenarios:') &&
+            (line.includes('passed:') || line.includes('failed:'));
     }
     isFilteredLine(line) {
-        return line.includes('INFO') || line.includes('karate-summary');
-    }
-    handleJsonOutput(line, jsonOutput, isCollectingJson) {
-        jsonOutput += line + '\n';
-        if (line.startsWith('}') && line.length === 1) {
-            isCollectingJson = false;
-            try {
-                const formattedJson = JSON.stringify(JSON.parse(jsonOutput), null, 2);
-                this.outputChannel.appendLine(formattedJson);
-            }
-            catch {
-                this.outputChannel.appendLine(jsonOutput);
-            }
-        }
-    }
-    handleTestSummary(line, testFailed) {
-        const failCount = line.match(/failed:\s+(\d+)/);
-        if (failCount && parseInt(failCount[1]) > 0) {
-            testFailed = true;
-        }
-        this.outputChannel.appendLine('\n📊 Test Results:');
-        this.outputChannel.appendLine(line);
+        const filtersToSkip = [
+            'karate-summary',
+            'HTML report:',
+            'Karate version:',
+            '====================================================================='
+        ];
+        return filtersToSkip.some(filter => line.includes(filter));
     }
 }
 exports.KarateRunner = KarateRunner;

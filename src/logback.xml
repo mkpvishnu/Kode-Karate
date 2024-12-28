@@ -1,15 +1,28 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <configuration>
+
     <appender name="STDOUT" class="ch.qos.logback.core.ConsoleAppender">
         <encoder>
             <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
         </encoder>
     </appender>
-    
-    <logger name="com.intuit.karate" level="INFO"/>
-    <logger name="karate.print" level="INFO"/>
-    
+
+    <appender name="FILE" class="ch.qos.logback.core.FileAppender">
+        <file>target/karate.log</file>
+        <encoder>
+            <pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</pattern>
+        </encoder>
+    </appender>
+
+    <!-- Enable detailed logging for Karate components -->
+    <logger name="com.intuit.karate" level="DEBUG"/>
+    <logger name="com.intuit.karate.http" level="DEBUG"/>
+    <logger name="com.intuit.karate.core" level="DEBUG"/>
+    <logger name="com.intuit.karate.log" level="DEBUG"/>
+
     <root level="DEBUG">
         <appender-ref ref="STDOUT" />
+        <appender-ref ref="FILE" />
     </root>
+
 </configuration>
