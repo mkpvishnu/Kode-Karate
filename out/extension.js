@@ -7,6 +7,7 @@ const fs = require("fs");
 const jarManager_1 = require("./jarManager");
 const javaFinder_1 = require("./javaFinder");
 const child_process_1 = require("child_process");
+const config_1 = require("./config");
 function activate(context) {
     const outputChannel = vscode.window.createOutputChannel('Karate Runner');
     const jarManager = new jarManager_1.KarateJarManager(context, outputChannel);
@@ -22,6 +23,12 @@ function activate(context) {
     });
     // Register CodeLens provider
     const codeLensProvider = vscode.languages.registerCodeLensProvider('karate', new KarateCodeLensProvider());
+    // Register configuration change listener
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e) => {
+        if (e.affectsConfiguration('karateRunner.logging')) {
+            await config_1.ConfigurationManager.handleConfigChange();
+        }
+    }));
     async function runKarate(filePath, scenarioName) {
         return new Promise(async (resolve, reject) => {
             try {
@@ -38,12 +45,20 @@ function activate(context) {
                 outputChannel.clear();
                 outputChannel.show(true);
                 outputChannel.appendLine('Running Karate test...\n');
-                const args = [
-                    '-Dlogback.configurationFile=logback-test.xml',
-                    '-jar',
-                    karateJarPath,
-                    filePath
-                ];
+                const loggingConfig = config_1.ConfigurationManager.getLoggingConfig();
+                const args = ['-jar', karateJarPath, filePath];
+                // Add logback configuration if using logback mode
+                if (loggingConfig.outputMode === 'logback' && loggingConfig.logbackFile) {
+                    const logbackPath = path.join(workspaceFolder.uri.fsPath, loggingConfig.logbackFile);
+                    if (fs.existsSync(logbackPath)) {
+                        args.unshift(`-Dlogback.configurationFile=${loggingConfig.logbackFile}`);
+                        outputChannel.appendLine(`Using logback configuration: ${logbackPath}\n`);
+                    }
+                    else {
+                        outputChannel.appendLine(`Warning: Logback file not found: ${logbackPath}\n`);
+                        outputChannel.appendLine('Falling back to extension output mode\n');
+                    }
+                }
                 if (scenarioName) {
                     args.push('--name', scenarioName);
                 }
@@ -52,61 +67,64 @@ function activate(context) {
                     cwd: workspaceFolder.uri.fsPath
                 });
                 let testFailed = false;
-                let currentStep = '';
-                let currentOutput = '';
                 let isCollectingJson = false;
                 let jsonOutput = '';
                 process.stdout.on('data', (data) => {
                     const output = data.toString();
                     const lines = output.split('\n');
-                    lines.forEach((line) => {
-                        line = line.replace(/\u001b\[\d+m/g, '').trim();
-                        if (!line)
-                            return;
-                        // Handle different types of output
-                        if (line.includes('match failed')) {
-                            testFailed = true;
-                            outputChannel.appendLine('❌ ' + line);
-                        }
-                        else if (line.startsWith('Given ') || line.startsWith('When ') ||
-                            line.startsWith('Then ') || line.startsWith('And ') ||
-                            line.startsWith('* ')) {
-                            currentStep = line;
-                            outputChannel.appendLine('\n► ' + line);
-                        }
-                        else if (line.includes('Response:')) {
-                            outputChannel.appendLine('\n🔍 Response:');
-                            isCollectingJson = true;
-                            jsonOutput = '';
-                        }
-                        else if (isCollectingJson && (line.startsWith('{') || line.startsWith('}'))) {
-                            jsonOutput += line + '\n';
-                            if (line.startsWith('}') && line.length === 1) {
-                                isCollectingJson = false;
-                                try {
-                                    const formattedJson = JSON.stringify(JSON.parse(jsonOutput), null, 2);
-                                    outputChannel.appendLine(formattedJson);
-                                }
-                                catch {
-                                    outputChannel.appendLine(jsonOutput);
-                                }
-                            }
-                        }
-                        else if (line.includes('scenarios:') && line.includes('failed:')) {
-                            const failCount = line.match(/failed:\s+(\d+)/);
-                            if (failCount && parseInt(failCount[1]) > 0) {
+                    // Only process output if we're in extension mode or if logback file is not found
+                    if (loggingConfig.outputMode === 'extension' || !loggingConfig.logbackFile) {
+                        lines.forEach((line) => {
+                            line = line.replace(/\u001b\[\d+m/g, '').trim();
+                            if (!line)
+                                return;
+                            if (line.includes('match failed')) {
                                 testFailed = true;
+                                outputChannel.appendLine('❌ ' + line);
                             }
-                            outputChannel.appendLine('\n📊 Test Results:');
-                            outputChannel.appendLine(line);
-                        }
-                        else if (isCollectingJson) {
-                            jsonOutput += line + '\n';
-                        }
-                        else if (!line.includes('INFO') && !line.includes('karate-summary')) {
-                            outputChannel.appendLine(line);
-                        }
-                    });
+                            else if (line.startsWith('Given ') || line.startsWith('When ') ||
+                                line.startsWith('Then ') || line.startsWith('And ') ||
+                                line.startsWith('* ')) {
+                                outputChannel.appendLine('\n► ' + line);
+                            }
+                            else if (line.includes('Response:')) {
+                                outputChannel.appendLine('\n🔍 Response:');
+                                isCollectingJson = true;
+                                jsonOutput = '';
+                            }
+                            else if (isCollectingJson && (line.startsWith('{') || line.startsWith('}'))) {
+                                jsonOutput += line + '\n';
+                                if (line.startsWith('}') && line.length === 1) {
+                                    isCollectingJson = false;
+                                    try {
+                                        const formattedJson = JSON.stringify(JSON.parse(jsonOutput), null, 2);
+                                        outputChannel.appendLine(formattedJson);
+                                    }
+                                    catch {
+                                        outputChannel.appendLine(jsonOutput);
+                                    }
+                                }
+                            }
+                            else if (line.includes('scenarios:') && line.includes('failed:')) {
+                                const failCount = line.match(/failed:\s+(\d+)/);
+                                if (failCount && parseInt(failCount[1]) > 0) {
+                                    testFailed = true;
+                                }
+                                outputChannel.appendLine('\n📊 Test Results:');
+                                outputChannel.appendLine(line);
+                            }
+                            else if (isCollectingJson) {
+                                jsonOutput += line + '\n';
+                            }
+                            else if (!line.includes('INFO') && !line.includes('karate-summary')) {
+                                outputChannel.appendLine(line);
+                            }
+                        });
+                    }
+                    else {
+                        // In logback mode with valid config, output raw test output
+                        outputChannel.append(output);
+                    }
                 });
                 process.stderr.on('data', (data) => {
                     outputChannel.appendLine('\n⚠️ Error:');
@@ -186,7 +204,7 @@ function activate(context) {
             });
         }
     });
-    // Create status bar item
+    // Create status bar item with dropdown for output mode selection
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     statusBarItem.text = "$(beaker) Karate";
     statusBarItem.tooltip = "Run Karate Tests";
@@ -221,7 +239,7 @@ function activate(context) {
         }
     });
     // Subscribe to all disposables
-    context.subscriptions.push(runTestCommand, runScenarioCommand, completionProvider, codeLensProvider, hoverProvider, statusBarItem);
+    context.subscriptions.push(runTestCommand, runScenarioCommand, completionProvider, codeLensProvider, hoverProvider, statusBarItem, configureLoggingCommand);
 }
 exports.activate = activate;
 class KarateCodeLensProvider {
@@ -244,6 +262,10 @@ class KarateCodeLensProvider {
         return codeLenses;
     }
 }
+// Register configure logging command
+let configureLoggingCommand = vscode.commands.registerCommand('karate-runner.configureLogging', async () => {
+    await config_1.ConfigurationManager.configureLoggingUI();
+});
 function getScenarioName(document, line) {
     const text = document.lineAt(line).text;
     const match = text.match(/Scenario:(.+)/);

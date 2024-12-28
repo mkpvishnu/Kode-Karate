@@ -14,7 +14,8 @@
     "activationEvents": [
         "onLanguage:karate",
         "onCommand:karate-runner.runTest",
-        "onCommand:karate-runner.runScenario"
+        "onCommand:karate-runner.runScenario",
+        "onCommand:karate-runner.configureLogging"
     ],
     "main": "./out/extension.js",
     "contributes": {
@@ -37,14 +38,40 @@
             {
                 "command": "karate-runner.runScenario",
                 "title": "Karate: Run Scenario"
+            },
+            {
+                "command": "karate-runner.configureLogging",
+                "title": "Karate: Configure Logging"
             }
         ],
+        "configuration": {
+            "title": "Karate Runner",
+            "properties": {
+                "karateRunner.logging.outputMode": {
+                    "type": "string",
+                    "enum": ["extension", "logback"],
+                    "default": "extension",
+                    "description": "Choose how to handle test output ('extension' for VS Code output or 'logback' for custom logback configuration)"
+                },
+                "karateRunner.logging.logbackFile": {
+                    "type": "string",
+                    "default": null,
+                    "description": "Path to custom logback configuration file (relative to workspace root)"
+                }
+            }
+        },
         "menus": {
             "editor/title": [
                 {
                     "when": "resourceExtname == .feature",
                     "command": "karate-runner.runTest",
                     "group": "navigation"
+                }
+            ],
+            "commandPalette": [
+                {
+                    "command": "karate-runner.configureLogging",
+                    "when": "true"
                 }
             ]
         }
@@ -62,6 +89,10 @@
         "@typescript-eslint/eslint-plugin": "^5.1.0",
         "@typescript-eslint/parser": "^5.1.0",
         "eslint": "^8.1.0",
-        "typescript": "^4.4.4"
+        "typescript": "^4.4.4",
+        "@types/glob": "^7.2.0"
+    },
+    "dependencies": {
+        "glob": "^7.2.0"
     }
 }
