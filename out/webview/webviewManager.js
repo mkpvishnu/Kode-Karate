@@ -4,7 +4,6 @@ exports.WebViewProvider = void 0;
 const vscode = require("vscode");
 const featureExplorer_1 = require("./featureExplorer");
 const runHistory_1 = require("./runHistory");
-const configurationView_1 = require("./configurationView");
 class WebViewProvider {
     constructor(_extensionUri, _viewType, _runKarateCallback) {
         this._extensionUri = _extensionUri;
@@ -24,10 +23,6 @@ class WebViewProvider {
             case 'karateRunHistory':
                 this._view = new runHistory_1.RunHistoryView(webviewView);
                 this.handleRunHistoryMessages(webviewView);
-                break;
-            case 'karateConfiguration':
-                this._view = new configurationView_1.ConfigurationView(webviewView);
-                this.handleConfigurationMessages(webviewView);
                 break;
         }
         // Only call render if _view exists
@@ -61,19 +56,6 @@ class WebViewProvider {
                 case 'openReport':
                     const uri = vscode.Uri.file(message.path);
                     await vscode.env.openExternal(uri);
-                    break;
-            }
-        });
-    }
-    handleConfigurationMessages(webviewView) {
-        webviewView.webview.onDidReceiveMessage(async (message) => {
-            const configView = this._view;
-            if (!configView)
-                return;
-            switch (message.command) {
-                case 'updateOutputMode':
-                    await vscode.commands.executeCommand('karate-runner.configureLogging');
-                    await configView.render();
                     break;
             }
         });

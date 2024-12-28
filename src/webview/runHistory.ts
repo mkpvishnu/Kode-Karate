@@ -6,12 +6,14 @@ import { v4 as uuidv4 } from 'uuid';
 interface TestRun {
     id: string;
     feature: string;
+    scenario?: string;
     timestamp: string;
     result: 'passed' | 'failed';
     reportPath: string;
     duration: number;
     scenariosPassed: number;
     scenariosFailed: number;
+    isScenarioRun: boolean;
 }
 
 interface KarateSummary {
@@ -39,9 +41,9 @@ export class RunHistoryView {
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
         this._targetDir = path.join(workspaceFolder?.uri.fsPath || '', 'target');
         
-        // Create file watcher for target directory
+        // Create file watcher for target directory to catch all report changes
         this._watcher = vscode.workspace.createFileSystemWatcher(
-            path.join(this._targetDir, '**/*.json'),
+            path.join(this._targetDir, '**/*'),
             false,
             false,
             false
@@ -103,7 +105,8 @@ export class RunHistoryView {
                         reportPath: path.join(reportDir, 'karate-summary.html'),
                         duration: feature.durationMillis,
                         scenariosPassed: feature.passedCount,
-                        scenariosFailed: feature.failedCount
+                        scenariosFailed: feature.failedCount,
+                        isScenarioRun: false
                     });
                 });
             }

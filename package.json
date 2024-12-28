@@ -15,7 +15,6 @@
         "onLanguage:karate",
         "onCommand:karate-runner.runTest",
         "onCommand:karate-runner.runScenario",
-        "onCommand:karate-runner.configureLogging",
         "onView:karateRunnerView"
     ],
     "main": "./out/extension.js",
@@ -65,40 +64,14 @@
             {
                 "command": "karate-runner.runScenario",
                 "title": "Karate: Run Scenario"
-            },
-            {
-                "command": "karate-runner.configureLogging",
-                "title": "Karate: Configure Logging"
             }
         ],
-        "configuration": {
-            "title": "Karate Runner",
-            "properties": {
-                "karateRunner.logging.outputMode": {
-                    "type": "string",
-                    "enum": ["extension", "logback"],
-                    "default": "extension",
-                    "description": "Choose how to handle test output ('extension' for VS Code output or 'logback' for custom logback configuration)"
-                },
-                "karateRunner.logging.logbackFile": {
-                    "type": "string",
-                    "default": null,
-                    "description": "Path to custom logback configuration file (relative to workspace root)"
-                }
-            }
-        },
         "menus": {
             "editor/title": [
                 {
                     "when": "resourceExtname == .feature",
                     "command": "karate-runner.runTest",
                     "group": "navigation"
-                }
-            ],
-            "commandPalette": [
-                {
-                    "command": "karate-runner.configureLogging",
-                    "when": "true"
                 }
             ]
         }

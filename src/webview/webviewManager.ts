@@ -1,10 +1,8 @@
 import * as vscode from 'vscode';
 import { FeatureExplorerView } from './featureExplorer';
 import { RunHistoryView } from './runHistory';
-import { ConfigurationView } from './configurationView';
-
 export class WebViewProvider implements vscode.WebviewViewProvider {
-    private _view?: FeatureExplorerView | RunHistoryView | ConfigurationView;
+    private _view?: FeatureExplorerView | RunHistoryView;
     
     constructor(
         private readonly _extensionUri: vscode.Uri,
@@ -30,10 +28,6 @@ export class WebViewProvider implements vscode.WebviewViewProvider {
             case 'karateRunHistory':
                 this._view = new RunHistoryView(webviewView);
                 this.handleRunHistoryMessages(webviewView);
-                break;
-            case 'karateConfiguration':
-                this._view = new ConfigurationView(webviewView);
-                this.handleConfigurationMessages(webviewView);
                 break;
         }
 
@@ -75,21 +69,7 @@ export class WebViewProvider implements vscode.WebviewViewProvider {
         });
     }
 
-    private handleConfigurationMessages(webviewView: vscode.WebviewView) {
-        webviewView.webview.onDidReceiveMessage(async message => {
-            const configView = this._view as ConfigurationView;
-            if (!configView) return;
-
-            switch (message.command) {
-                case 'updateOutputMode':
-                    await vscode.commands.executeCommand('karate-runner.configureLogging');
-                    await configView.render();
-                    break;
-            }
-        });
-    }
-
-    public get view(): FeatureExplorerView | RunHistoryView | ConfigurationView | undefined {
+    public get view(): FeatureExplorerView | RunHistoryView | undefined {
         return this._view;
     }
 

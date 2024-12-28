@@ -70,22 +70,15 @@ export class KarateRunner {
                 this.outputChannel.show(true);
                 this.outputChannel.appendLine('Running Karate test...\n');
 
-                const loggingConfig = ConfigurationManager.getLoggingConfig();
                 const args = ['-jar', this.karateJarPath, filePath];
-
-                if (loggingConfig.outputMode === 'logback' && loggingConfig.logbackFile) {
-                    const logbackPath = path.join(workspaceFolder.uri.fsPath, loggingConfig.logbackFile);
-                    if (fs.existsSync(logbackPath)) {
-                        args.unshift(`-Dlogback.configurationFile=${loggingConfig.logbackFile}`);
-                        this.outputChannel.appendLine(`Using logback configuration: ${logbackPath}\n`);
-                    } else {
-                        this.outputChannel.appendLine(`Warning: Logback file not found: ${logbackPath}\n`);
-                        this.outputChannel.appendLine('Falling back to extension output mode\n');
-                    }
+                const defaultPath = path.join(workspaceFolder.uri.fsPath, 'src', 'logback.xml');
+                if (fs.existsSync(defaultPath)) {
+                    args.unshift(`-Dlogback.configurationFile=${defaultPath}`);
+                    this.outputChannel.appendLine(`Using default logback configuration: ${defaultPath}\n`);
                 }
 
                 if (scenarioName) {
-                    args.push('--name', `"${scenarioName}"`);
+                    args.push('--name', scenarioName);
                 }
 
                 this.outputChannel.appendLine(`Running command: ${this.java11Path} ${args.join(' ')}\n`);
@@ -102,11 +95,7 @@ export class KarateRunner {
                     const output = data.toString();
                     const lines = output.split('\n');
                     
-                    if (loggingConfig.outputMode === 'extension' || !loggingConfig.logbackFile) {
-                        this.processExtensionOutput(lines, testFailed, isCollectingJson, jsonOutput);
-                    } else {
-                        this.outputChannel.append(output);
-                    }
+                    this.processExtensionOutput(lines, testFailed, isCollectingJson, jsonOutput);
                 });
 
                 process.stderr.on('data', (data) => {
@@ -170,6 +159,12 @@ export class KarateRunner {
             }
             else if (this.isTestSummaryLine(line)) {
                 this.handleTestSummary(line, testFailed);
+            }
+            else if (line.startsWith('* print')) {
+                this.outputChannel.appendLine('\n🖨️ ' + line);
+            }
+            else if (line.startsWith('* karate.log')) {
+                this.outputChannel.appendLine('\n📝 ' + line);
             }
             else if (isCollectingJson) {
                 jsonOutput += line + '\n';

@@ -10,8 +10,8 @@ class RunHistoryView {
         this._view = webview;
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
         this._targetDir = path.join(workspaceFolder?.uri.fsPath || '', 'target');
-        // Create file watcher for target directory
-        this._watcher = vscode.workspace.createFileSystemWatcher(path.join(this._targetDir, '**/*.json'), false, false, false);
+        // Create file watcher for target directory to catch all report changes
+        this._watcher = vscode.workspace.createFileSystemWatcher(path.join(this._targetDir, '**/*'), false, false, false);
         // Refresh view when reports are created or modified
         this._watcher.onDidCreate(() => this.refresh());
         this._watcher.onDidChange(() => this.refresh());
@@ -59,7 +59,8 @@ class RunHistoryView {
                         reportPath: path.join(reportDir, 'karate-summary.html'),
                         duration: feature.durationMillis,
                         scenariosPassed: feature.passedCount,
-                        scenariosFailed: feature.failedCount
+                        scenariosFailed: feature.failedCount,
+                        isScenarioRun: false
                     });
                 });
             }
