@@ -22,6 +22,14 @@ async function activate(context) {
     karateRunner.setViewProviders(featureExplorerProvider, runHistoryProvider);
     // Register WebView Providers
     context.subscriptions.push(vscode.window.registerWebviewViewProvider('karateFeatureExplorer', featureExplorerProvider), vscode.window.registerWebviewViewProvider('karateRunHistory', runHistoryProvider), vscode.window.registerWebviewViewProvider('karateConfiguration', configurationProvider));
+    // Add file watcher for .feature files
+    const featureWatcher = vscode.workspace.createFileSystemWatcher('**/*.feature');
+    // Refresh feature explorer on file changes
+    featureWatcher.onDidCreate(() => featureExplorerProvider.refresh());
+    featureWatcher.onDidDelete(() => featureExplorerProvider.refresh());
+    featureWatcher.onDidChange(() => featureExplorerProvider.refresh());
+    // Add watcher to disposables
+    context.subscriptions.push(featureWatcher);
     // Register Commands
     (0, commands_1.registerCommands)(context, karateRunner);
     // Register Providers

@@ -39,6 +39,17 @@ export async function activate(context: vscode.ExtensionContext) {
         vscode.window.registerWebviewViewProvider('karateConfiguration', configurationProvider)
     );
 
+    // Add file watcher for .feature files
+    const featureWatcher = vscode.workspace.createFileSystemWatcher('**/*.feature');
+    
+    // Refresh feature explorer on file changes
+    featureWatcher.onDidCreate(() => featureExplorerProvider.refresh());
+    featureWatcher.onDidDelete(() => featureExplorerProvider.refresh());
+    featureWatcher.onDidChange(() => featureExplorerProvider.refresh());
+    
+    // Add watcher to disposables
+    context.subscriptions.push(featureWatcher);
+
     // Register Commands
     registerCommands(context, karateRunner);
 
