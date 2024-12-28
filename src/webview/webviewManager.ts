@@ -64,9 +64,6 @@ export class WebViewProvider implements vscode.WebviewViewProvider {
             if (!historyView) return;
 
             switch (message.command) {
-                case 'deleteRun':
-                    await historyView.deleteRun(message.id);
-                    break;
                 case 'clearHistory':
                     await historyView.clearHistory();
                     break;

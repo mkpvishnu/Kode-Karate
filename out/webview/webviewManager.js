@@ -55,9 +55,6 @@ class WebViewProvider {
             if (!historyView)
                 return;
             switch (message.command) {
-                case 'deleteRun':
-                    await historyView.deleteRun(message.id);
-                    break;
                 case 'clearHistory':
                     await historyView.clearHistory();
                     break;
