@@ -1,61 +1,42 @@
 {
-    "name": "karate-runner",
-    "displayName": "Karate Runner",
+    "name": "kode-karate",
+    "displayName": "Kode Karate",
     "description": "Karate DSL support for VS Code with automatic JAR management",
     "version": "0.0.1",
-    "publisher": "karate-runner",
+    "publisher": "mkpvishnu",
     "engines": {
         "vscode": "^1.60.0"
     },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mkpvishnu/karate-utils-extensions"
+    },
+    "license": "MIT",
+    "keywords": [
+        "karate",
+        "testing",
+        "api testing",
+        "bdd",
+        "cucumber"
+    ],
     "categories": [
         "Programming Languages",
-        "Testing"
+        "Testing",
+        "Debuggers"
     ],
+    "icon": "resources/karate.jpeg",
+    "galleryBanner": {
+        "color": "#C80000",
+        "theme": "dark"
+    },
     "activationEvents": [
+        "workspaceContains:**/*.feature",
         "onLanguage:karate",
         "onCommand:karate-runner.runTest",
-        "onCommand:karate-runner.runScenario",
-        "onView:karateRunnerView"
+        "onCommand:karate-runner.runScenario"
     ],
     "main": "./out/extension.js",
     "contributes": {
-        "viewsContainers": {
-            "activitybar": [{
-                "id": "karate-runner-sidebar",
-                "title": "Karate Runner",
-                "icon": "resources/karate.svg"
-            }]
-        },
-        "views": {
-            "karate-runner-sidebar": [
-                {
-                    "id": "karateFeatureExplorer",
-                    "name": "Feature Explorer",
-                    "type": "webview"
-                },
-                {
-                    "id": "karateRunHistory",
-                    "name": "Run History",
-                    "type": "webview"
-                },
-                {
-                    "id": "karateConfiguration",
-                    "name": "Configuration",
-                    "type": "webview"
-                }
-            ]
-        },
-        "languages": [{
-            "id": "karate",
-            "aliases": ["Karate", "karate"],
-            "extensions": [".feature"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "karate",
-            "scopeName": "source.karate",
-            "path": "./syntaxes/karate.tmLanguage.json"
-        }],
         "commands": [
             {
                 "command": "karate-runner.runTest",
@@ -64,6 +45,49 @@
             {
                 "command": "karate-runner.runScenario",
                 "title": "Karate: Run Scenario"
+            },
+            {
+                "command": "karate-runner.clearHistory",
+                "title": "Karate: Clear Run History"
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "karate-runner-sidebar",
+                    "title": "Kode Karate",
+                    "icon": "resources/karate.svg"
+                }
+            ]
+        },
+        "views": {
+            "karate-runner-sidebar": [
+                {
+                    "type": "webview",
+                    "id": "karateFeatureExplorer",
+                    "name": "Feature Explorer",
+                    "icon": "resources/feature.svg"
+                },
+                {
+                    "type": "webview",
+                    "id": "karateRunHistory",
+                    "name": "Run History"
+                }
+            ]
+        },
+        "languages": [
+            {
+                "id": "karate",
+                "aliases": ["Karate", "karate"],
+                "extensions": [".feature"],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "karate",
+                "scopeName": "source.karate",
+                "path": "./syntaxes/karate.tmLanguage.json"
             }
         ],
         "menus": {
@@ -71,6 +95,13 @@
                 {
                     "when": "resourceExtname == .feature",
                     "command": "karate-runner.runTest",
+                    "group": "navigation"
+                }
+            ],
+            "view/title": [
+                {
+                    "command": "karate-runner.clearHistory",
+                    "when": "view == karateRunHistory",
                     "group": "navigation"
                 }
             ]
@@ -81,7 +112,9 @@
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile",
-        "test": "node ./out/test/runTest.js"
+        "test": "node ./out/test/runTest.js",
+        "package": "vsce package",
+        "publish": "vsce publish"
     },
     "devDependencies": {
         "@types/vscode": "^1.60.0",
@@ -91,7 +124,8 @@
         "eslint": "^8.1.0",
         "typescript": "^4.4.4",
         "@types/glob": "^7.2.0",
-        "@types/uuid": "^8.3.0"
+        "@types/uuid": "^8.3.0",
+        "@vscode/vsce": "^2.24.0"
     },
     "dependencies": {
         "glob": "^7.2.0",

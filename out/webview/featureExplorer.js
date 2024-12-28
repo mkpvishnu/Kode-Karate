@@ -3,121 +3,92 @@ Object.defineProperty(exports, "__esModule", { value: true });
 exports.FeatureExplorerView = void 0;
 const vscode = require("vscode");
 const path = require("path");
-const fs = require("fs");
 class FeatureExplorerView {
     constructor(webview) {
         this._view = webview;
+        // Handle messages from the WebView
+        this._view.webview.onDidReceiveMessage(async (message) => {
+            switch (message.command) {
+                case 'runFeature':
+                    if (this._runCallback) {
+                        await this._runCallback(message.filePath, message.scenarioName);
+                    }
+                    break;
+                case 'refresh':
+                    await this.refresh();
+                    break;
+            }
+        });
+    }
+    setRunCallback(callback) {
+        this._runCallback = callback;
     }
     async render() {
         const features = await this.findFeatureFiles();
-        const scenarios = await this.extractScenarios(features);
-        this._view.webview.html = this.getHtml(features, scenarios);
+        this._view.webview.html = this.getWebviewContent(features);
+    }
+    async refresh() {
+        await this.render();
     }
     async findFeatureFiles() {
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
         if (!workspaceFolder) {
             return [];
         }
-        const featureFiles = [];
         const pattern = new vscode.RelativePattern(workspaceFolder, '**/*.feature');
-        const files = await vscode.workspace.findFiles(pattern, '**/node_modules/**');
-        return files.map(file => path.relative(workspaceFolder.uri.fsPath, file.fsPath));
+        const files = await vscode.workspace.findFiles(pattern);
+        return files.map(file => file.fsPath);
     }
-    async extractScenarios(featureFiles) {
-        const scenarioMap = new Map();
-        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
-        if (!workspaceFolder) {
-            return scenarioMap;
-        }
-        for (const file of featureFiles) {
-            const filePath = path.join(workspaceFolder.uri.fsPath, file);
-            const content = await fs.promises.readFile(filePath, 'utf8');
-            const scenarios = this.parseScenarios(content);
-            scenarioMap.set(file, scenarios);
-        }
-        return scenarioMap;
-    }
-    parseScenarios(content) {
-        const scenarios = [];
-        const lines = content.split('\n');
-        for (const line of lines) {
-            const trimmed = line.trim();
-            if (trimmed.startsWith('Scenario:')) {
-                scenarios.push(trimmed.substring('Scenario:'.length).trim());
-            }
-        }
-        return scenarios;
-    }
-    getHtml(features, scenarios) {
+    getWebviewContent(features) {
         return `<!DOCTYPE html>
         <html>
         <head>
             <style>
-                .feature-tree {
+                body {
                     padding: 10px;
+                    font-family: var(--vscode-font-family);
+                    color: var(--vscode-editor-foreground);
+                }
+                .feature-list {
+                    display: flex;
+                    flex-direction: column;
+                    gap: 10px;
                 }
                 .feature-item {
-                    margin: 5px 0;
-                }
-                .scenario-list {
-                    margin-left: 20px;
-                }
-                .run-button {
-                    margin-left: 5px;
-                    padding: 2px 6px;
+                    padding: 8px;
+                    border: 1px solid var(--vscode-panel-border);
+                    border-radius: 4px;
                     cursor: pointer;
+                }
+                .feature-item:hover {
+                    background: var(--vscode-list-hoverBackground);
+                }
+                .button {
+                    padding: 4px 8px;
                     background: var(--vscode-button-background);
                     color: var(--vscode-button-foreground);
                     border: none;
                     border-radius: 3px;
-                }
-                .feature-header {
-                    display: flex;
-                    align-items: center;
-                    padding: 5px;
                     cursor: pointer;
-                    background: var(--vscode-list-activeSelectionBackground);
-                    color: var(--vscode-list-activeSelectionForeground);
-                    margin-bottom: 2px;
-                    border-radius: 3px;
                 }
-                .scenario-item {
-                    display: flex;
-                    align-items: center;
-                    justify-content: space-between;
-                    padding: 3px 5px;
-                    margin: 2px 0;
-                    background: var(--vscode-list-hoverBackground);
-                    border-radius: 3px;
-                }
-                .scenario-name {
-                    margin-right: 10px;
-                }
-                .collapsible {
-                    background: transparent;
-                    border: none;
-                    cursor: pointer;
-                    padding: 0 5px;
-                    color: var(--vscode-editor-foreground);
+                .button:hover {
+                    background: var(--vscode-button-hoverBackground);
                 }
             </style>
         </head>
         <body>
-            <div class="feature-tree">
-                ${features.map(feature => `
+            <div class="feature-list">
+                ${features.length === 0 ? '<div>No feature files found</div>' : ''}
+                ${features.map(file => `
                     <div class="feature-item">
-                        <div class="feature-header">
-                            <button class="collapsible" onclick="toggleScenarios('${feature}')">▶</button>
-                            <span>${feature}</span>
-                            <button class="run-button" onclick="runFeature('${feature}')">Run</button>
+                        <div>${path.basename(file)}</div>
+                        <div style="font-size: 0.8em; color: var(--vscode-descriptionForeground);">
+                            ${path.relative(vscode.workspace.workspaceFolders?.[0]?.uri.fsPath || '', file)}
                         </div>
-                        <div id="${feature}" class="scenario-list" style="display: none">
-                            ${scenarios.get(feature)?.map(scenario => `
-                                <div class="scenario-item">
-                                    <span class="scenario-name">${scenario}</span>
-                                    <button class="run-button" onclick="runScenario('${feature}', '${encodeURIComponent(scenario)}')">Run</button>
-                                </div>
-                            `).join('') || ''}
+                        <div style="margin-top: 8px;">
+                            <button class="button" onclick="runFeature('${file.replace(/\\/g, '\\\\')}')">
+                                Run Test
+                            </button>
                         </div>
                     </div>
                 `).join('')}
@@ -125,30 +96,10 @@ class FeatureExplorerView {
             <script>
                 const vscode = acquireVsCodeApi();
 
-                function toggleScenarios(feature) {
-                    const element = document.getElementById(feature);
-                    const button = event.target;
-                    if (element.style.display === 'none') {
-                        element.style.display = 'block';
-                        button.textContent = '▼';
-                    } else {
-                        element.style.display = 'none';
-                        button.textContent = '▶';
-                    }
-                }
-
-                function runFeature(feature) {
+                function runFeature(filePath) {
                     vscode.postMessage({
                         command: 'runFeature',
-                        feature: feature
-                    });
-                }
-
-                function runScenario(feature, scenario) {
-                    vscode.postMessage({
-                        command: 'runScenario',
-                        feature: feature,
-                        scenario: decodeURIComponent(scenario)
+                        filePath: filePath
                     });
                 }
             </script>
