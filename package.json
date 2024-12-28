@@ -15,10 +15,37 @@
         "onLanguage:karate",
         "onCommand:karate-runner.runTest",
         "onCommand:karate-runner.runScenario",
-        "onCommand:karate-runner.configureLogging"
+        "onCommand:karate-runner.configureLogging",
+        "onView:karateRunnerView"
     ],
     "main": "./out/extension.js",
     "contributes": {
+        "viewsContainers": {
+            "activitybar": [{
+                "id": "karate-runner-sidebar",
+                "title": "Karate Runner",
+                "icon": "resources/karate.svg"
+            }]
+        },
+        "views": {
+            "karate-runner-sidebar": [
+                {
+                    "id": "karateFeatureExplorer",
+                    "name": "Feature Explorer",
+                    "type": "webview"
+                },
+                {
+                    "id": "karateRunHistory",
+                    "name": "Run History",
+                    "type": "webview"
+                },
+                {
+                    "id": "karateConfiguration",
+                    "name": "Configuration",
+                    "type": "webview"
+                }
+            ]
+        },
         "languages": [{
             "id": "karate",
             "aliases": ["Karate", "karate"],
@@ -90,9 +117,11 @@
         "@typescript-eslint/parser": "^5.1.0",
         "eslint": "^8.1.0",
         "typescript": "^4.4.4",
-        "@types/glob": "^7.2.0"
+        "@types/glob": "^7.2.0",
+        "@types/uuid": "^8.3.0"
     },
     "dependencies": {
-        "glob": "^7.2.0"
+        "glob": "^7.2.0",
+        "uuid": "^8.3.2"
     }
 }

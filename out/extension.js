@@ -8,6 +8,8 @@ const jarManager_1 = require("./jarManager");
 const javaFinder_1 = require("./javaFinder");
 const child_process_1 = require("child_process");
 const config_1 = require("./config");
+const webviewManager_1 = require("./webview/webviewManager");
+const uuid_1 = require("uuid");
 function activate(context) {
     const outputChannel = vscode.window.createOutputChannel('Karate Runner');
     const jarManager = new jarManager_1.KarateJarManager(context, outputChannel);
@@ -23,12 +25,30 @@ function activate(context) {
     });
     // Register CodeLens provider
     const codeLensProvider = vscode.languages.registerCodeLensProvider('karate', new KarateCodeLensProvider());
-    // Register configuration change listener
-    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e) => {
-        if (e.affectsConfiguration('karateRunner.logging')) {
-            await config_1.ConfigurationManager.handleConfigChange();
+    // Register WebView Providers
+    const featureExplorerProvider = new webviewManager_1.WebViewProvider(context.extensionUri, 'karateFeatureExplorer', runKarate);
+    const runHistoryProvider = new webviewManager_1.WebViewProvider(context.extensionUri, 'karateRunHistory');
+    const configurationProvider = new webviewManager_1.WebViewProvider(context.extensionUri, 'karateConfiguration');
+    context.subscriptions.push(vscode.window.registerWebviewViewProvider('karateFeatureExplorer', featureExplorerProvider), vscode.window.registerWebviewViewProvider('karateRunHistory', runHistoryProvider), vscode.window.registerWebviewViewProvider('karateConfiguration', configurationProvider));
+    // Update history after each test run
+    async function updateRunHistory(feature, scenario, passed) {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder)
+            return;
+        const reportPath = path.join(workspaceFolder.uri.fsPath, 'target', 'karate-reports', 'karate-summary.html');
+        const run = {
+            id: (0, uuid_1.v4)(),
+            feature,
+            scenario,
+            timestamp: new Date().toISOString(),
+            result: passed ? 'passed' : 'failed',
+            reportPath
+        };
+        const historyView = runHistoryProvider.view;
+        if (historyView) {
+            await historyView.addRun(run);
         }
-    }));
+    }
     async function runKarate(filePath, scenarioName) {
         return new Promise(async (resolve, reject) => {
             try {
@@ -131,14 +151,16 @@ function activate(context) {
                     outputChannel.appendLine(data.toString());
                     testFailed = true;
                 });
-                process.on('close', (code) => {
+                process.on('close', async (code) => {
                     outputChannel.appendLine('\n' + '='.repeat(80));
                     if (testFailed) {
                         outputChannel.appendLine('❌ Test Failed');
+                        await updateRunHistory(filePath, scenarioName, false);
                         reject(new Error('Test execution failed'));
                     }
                     else {
                         outputChannel.appendLine('✅ Test Passed');
+                        await updateRunHistory(filePath, scenarioName, true);
                         resolve();
                     }
                     outputChannel.appendLine('='.repeat(80) + '\n');
@@ -146,6 +168,10 @@ function activate(context) {
                     const reportPath = path.join(workspaceFolder.uri.fsPath, 'target', 'karate-reports', 'karate-summary.html');
                     if (fs.existsSync(reportPath)) {
                         vscode.env.openExternal(vscode.Uri.file(reportPath));
+                    }
+                    // Refresh Feature Explorer view
+                    if (featureExplorerProvider.view) {
+                        await featureExplorerProvider.view.render();
                     }
                 });
             }
@@ -204,7 +230,7 @@ function activate(context) {
             });
         }
     });
-    // Create status bar item with dropdown for output mode selection
+    // Create status bar item
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     statusBarItem.text = "$(beaker) Karate";
     statusBarItem.tooltip = "Run Karate Tests";
@@ -238,8 +264,17 @@ function activate(context) {
             }
         }
     });
+    // Register configuration change listener
+    context.subscriptions.push(vscode.workspace.onDidChangeConfiguration(async (e) => {
+        if (e.affectsConfiguration('karateRunner.logging')) {
+            await config_1.ConfigurationManager.handleConfigChange();
+            if (configurationProvider.view) {
+                await configurationProvider.view.render();
+            }
+        }
+    }));
     // Subscribe to all disposables
-    context.subscriptions.push(runTestCommand, runScenarioCommand, completionProvider, codeLensProvider, hoverProvider, statusBarItem, configureLoggingCommand);
+    context.subscriptions.push(runTestCommand, runScenarioCommand, completionProvider, codeLensProvider, hoverProvider, statusBarItem);
 }
 exports.activate = activate;
 class KarateCodeLensProvider {
@@ -262,10 +297,6 @@ class KarateCodeLensProvider {
         return codeLenses;
     }
 }
-// Register configure logging command
-let configureLoggingCommand = vscode.commands.registerCommand('karate-runner.configureLogging', async () => {
-    await config_1.ConfigurationManager.configureLoggingUI();
-});
 function getScenarioName(document, line) {
     const text = document.lineAt(line).text;
     const match = text.match(/Scenario:(.+)/);

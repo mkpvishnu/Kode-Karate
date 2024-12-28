@@ -5,6 +5,8 @@ import { KarateJarManager } from './jarManager';
 import { JavaFinder } from './javaFinder';
 import { spawn } from 'child_process';
 import { ConfigurationManager } from './config';
+import { WebViewProvider } from './webview/webviewManager';
+import { v4 as uuidv4 } from 'uuid';
 
 export function activate(context: vscode.ExtensionContext) {
     const outputChannel = vscode.window.createOutputChannel('Karate Runner');
@@ -24,14 +26,53 @@ export function activate(context: vscode.ExtensionContext) {
     // Register CodeLens provider
     const codeLensProvider = vscode.languages.registerCodeLensProvider('karate', new KarateCodeLensProvider());
 
-    // Register configuration change listener
-    context.subscriptions.push(
-        vscode.workspace.onDidChangeConfiguration(async (e) => {
-            if (e.affectsConfiguration('karateRunner.logging')) {
-                await ConfigurationManager.handleConfigChange();
-            }
-        })
+    // Register WebView Providers
+    const featureExplorerProvider = new WebViewProvider(
+        context.extensionUri,
+        'karateFeatureExplorer',
+        runKarate
     );
+    const runHistoryProvider = new WebViewProvider(
+        context.extensionUri,
+        'karateRunHistory'
+    );
+    const configurationProvider = new WebViewProvider(
+        context.extensionUri,
+        'karateConfiguration'
+    );
+
+    context.subscriptions.push(
+        vscode.window.registerWebviewViewProvider('karateFeatureExplorer', featureExplorerProvider),
+        vscode.window.registerWebviewViewProvider('karateRunHistory', runHistoryProvider),
+        vscode.window.registerWebviewViewProvider('karateConfiguration', configurationProvider)
+    );
+
+    // Update history after each test run
+    async function updateRunHistory(feature: string, scenario: string | undefined, passed: boolean) {
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (!workspaceFolder) return;
+
+        const reportPath = path.join(
+            workspaceFolder.uri.fsPath,
+            'target',
+            'karate-reports',
+            'karate-summary.html'
+        );
+
+        const run = {
+            id: uuidv4(),
+            feature,
+            scenario,
+            timestamp: new Date().toISOString(),
+            result: passed ? 'passed' : 'failed',
+            reportPath
+        };
+
+        const historyView = runHistoryProvider.view;
+        if (historyView) {
+            await (historyView as any).addRun(run);
+        }
+    }
 
     async function runKarate(filePath: string, scenarioName?: string): Promise<void> {
         return new Promise(async (resolve, reject) => {
@@ -146,13 +187,15 @@ export function activate(context: vscode.ExtensionContext) {
                     testFailed = true;
                 });
 
-                process.on('close', (code) => {
+                process.on('close', async (code) => {
                     outputChannel.appendLine('\n' + '='.repeat(80));
                     if (testFailed) {
                         outputChannel.appendLine('❌ Test Failed');
+                        await updateRunHistory(filePath, scenarioName, false);
                         reject(new Error('Test execution failed'));
                     } else {
                         outputChannel.appendLine('✅ Test Passed');
+                        await updateRunHistory(filePath, scenarioName, true);
                         resolve();
                     }
                     outputChannel.appendLine('='.repeat(80) + '\n');
@@ -161,6 +204,11 @@ export function activate(context: vscode.ExtensionContext) {
                     const reportPath = path.join(workspaceFolder.uri.fsPath, 'target', 'karate-reports', 'karate-summary.html');
                     if (fs.existsSync(reportPath)) {
                         vscode.env.openExternal(vscode.Uri.file(reportPath));
+                    }
+
+                    // Refresh Feature Explorer view
+                    if (featureExplorerProvider.view) {
+                        await featureExplorerProvider.view.render();
                     }
                 });
 
@@ -228,7 +276,7 @@ export function activate(context: vscode.ExtensionContext) {
         }
     );
 
-    // Create status bar item with dropdown for output mode selection
+    // Create status bar item
     const statusBarItem = vscode.window.createStatusBarItem(vscode.StatusBarAlignment.Left);
     statusBarItem.text = "$(beaker) Karate";
     statusBarItem.tooltip = "Run Karate Tests";
@@ -266,6 +314,18 @@ export function activate(context: vscode.ExtensionContext) {
         }
     });
 
+    // Register configuration change listener
+    context.subscriptions.push(
+        vscode.workspace.onDidChangeConfiguration(async (e) => {
+            if (e.affectsConfiguration('karateRunner.logging')) {
+                await ConfigurationManager.handleConfigChange();
+                if (configurationProvider.view) {
+                    await configurationProvider.view.render();
+                }
+            }
+        })
+    );
+
     // Subscribe to all disposables
     context.subscriptions.push(
         runTestCommand,
@@ -273,8 +333,7 @@ export function activate(context: vscode.ExtensionContext) {
         completionProvider,
         codeLensProvider,
         hoverProvider,
-        statusBarItem,
-        configureLoggingCommand
+        statusBarItem
     );
 }
 
@@ -300,11 +359,6 @@ class KarateCodeLensProvider implements vscode.CodeLensProvider {
         return codeLenses;
     }
 }
-
-// Register configure logging command
-let configureLoggingCommand = vscode.commands.registerCommand('karate-runner.configureLogging', async () => {
-    await ConfigurationManager.configureLoggingUI();
-});
 
 function getScenarioName(document: vscode.TextDocument, line: number): string | undefined {
     const text = document.lineAt(line).text;
