@@ -72,6 +72,18 @@ Initial release of Karate Runner:
 - Run history
 - Automatic JAR management
 
+### 1.0.0
+
+Full release of Karate Runner:
+- Better Feature Explorer
+- Better Run History
+- Added syntax highlight support (Support is added from https://github.com/kirksl/karate-runner. Thanks to the devs of this extension for their extensive work in this.)
+- Better and more seamless output format.
+- Fixed some critical bugs
+
+### Note:
+This extension is not sponsored by Karate or anyway associated with the devs of karate DSL. They are awesome people and they have their own official extension available for both vscode and IntteliJ.Please check out there for official support -> https://www.karatelabs.io/
+
 ## Contributing
 
 We welcome contributions! Please see our [contributing guidelines](link-to-your-repo/CONTRIBUTING.md) for details.
