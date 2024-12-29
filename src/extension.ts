@@ -8,6 +8,7 @@ import { FeatureTreeProvider, FeatureTreeItem } from './providers/featureTreePro
 import { RunHistoryProvider, HistoryTreeItem } from './providers/runHistoryProvider';
 import { KarateStatusBar } from './statusBar/karateStatus';
 import { CurlConverterPanel } from './providers/CurlConverterPanel';
+import { ResponseDiffPanel } from './providers/ResponseDiffPanel';
 import { UtilitiesProvider } from './providers/UtilitiesProvider';
 
 let outputChannel: vscode.OutputChannel;
@@ -27,10 +28,16 @@ export async function activate(context: vscode.ExtensionContext) {
         const karateRunner = new KarateRunner(context, outputChannel);
         log('Karate Runner initialized');
 
-        // Register cURL converter command
+        // Register utility commands
         context.subscriptions.push(
             vscode.commands.registerCommand('karateUtilities.openConverter', () => {
                 CurlConverterPanel.createOrShow(context.extensionPath);
+            })
+        );
+
+        context.subscriptions.push(
+            vscode.commands.registerCommand('karateUtilities.openResponseDiff', () => {
+                ResponseDiffPanel.createOrShow(context.extensionPath);
             })
         );
 
