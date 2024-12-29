@@ -11,6 +11,7 @@ vsc-extension-quickstart.md
 out/test/**
 !out/**/*.js
 !resources/**
+!python/**
 node_modules/**
 !node_modules/uuid/**
 target/**
