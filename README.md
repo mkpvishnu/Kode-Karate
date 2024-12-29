@@ -1,4 +1,5 @@
-# Karate Runner for VS Code
+# Kode Karate
+<img src="https://github.com/mkpvishnu/Kode-Karate/blob/main/resources/karate.jpeg" alt="Logo" width="900" height="700"/>
 
 A Visual Studio Code extension that provides comprehensive support for running and managing Karate API tests.
 
@@ -64,7 +65,7 @@ Please report issues on our [GitHub repository](link-to-your-repo/issues).
 
 ## Release Notes
 
-### 0.0.1
+#### 0.0.1
 
 Initial release of Karate Runner:
 - Basic test running capabilities
@@ -72,7 +73,7 @@ Initial release of Karate Runner:
 - Run history
 - Automatic JAR management
 
-### 1.0.0
+#### 1.0.0
 
 Full release of Karate Runner:
 - Better Feature Explorer
@@ -86,8 +87,7 @@ This extension is not sponsored by Karate or anyway associated with the devs of 
 
 ## Contributing
 
-We welcome contributions! Please see our [contributing guidelines](link-to-your-repo/CONTRIBUTING.md) for details.
-
+We welcome contributions!
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
