@@ -47,10 +47,6 @@
                 "title": "Karate: Run Scenario"
             },
             {
-                "command": "karate-runner.clearHistory",
-                "title": "Karate: Clear Run History"
-            },
-            {
                 "command": "karateFeatureExplorer.refresh",
                 "title": "Refresh",
                 "icon": "$(refresh)"
@@ -64,6 +60,21 @@
                 "command": "karateFeatureExplorer.runScenario",
                 "title": "Run Scenario",
                 "icon": "$(play)"
+            },
+            {
+                "command": "karateRunHistory.refresh",
+                "title": "Refresh History",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "karateRunHistory.clearHistory",
+                "title": "Clear History",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "karateRunHistory.openReport",
+                "title": "Open Report",
+                "icon": "$(link-external)"
             }
         ],
         "viewsContainers": {
@@ -83,9 +94,9 @@
                     "icon": "resources/feature.svg"
                 },
                 {
-                    "type": "webview",
                     "id": "karateRunHistory",
-                    "name": "Run History"
+                    "name": "Run History",
+                    "icon": "resources/history.svg"
                 }
             ]
         },
@@ -94,6 +105,16 @@
                 {
                     "command": "karateFeatureExplorer.refresh",
                     "when": "view == karateFeatureExplorer",
+                    "group": "navigation"
+                },
+                {
+                    "command": "karateRunHistory.refresh",
+                    "when": "view == karateRunHistory",
+                    "group": "navigation"
+                },
+                {
+                    "command": "karateRunHistory.clearHistory",
+                    "when": "view == karateRunHistory",
                     "group": "navigation"
                 }
             ],
@@ -109,22 +130,7 @@
                     "group": "inline"
                 }
             ]
-        },
-        "languages": [
-            {
-                "id": "karate",
-                "aliases": ["Karate", "karate"],
-                "extensions": [".feature"],
-                "configuration": "./language-configuration.json"
-            }
-        ],
-        "grammars": [
-            {
-                "language": "karate",
-                "scopeName": "source.karate",
-                "path": "./syntaxes/karate.tmLanguage.json"
-            }
-        ]
+        }
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

@@ -1,11 +1,11 @@
 import * as vscode from 'vscode';
 import { KarateJarManager } from './jarManager';
 import { JavaFinder } from './javaFinder';
-import { WebViewProvider } from './webview/webviewManager';
 import { KarateRunner } from './runners/karateRunner';
 import { registerCommands } from './commands';
 import { KarateCodeLensProvider, KarateCompletionProvider, KarateHoverProvider } from './providers';
 import { FeatureTreeProvider, FeatureTreeItem } from './providers/featureTreeProvider';
+import { RunHistoryProvider, HistoryTreeItem } from './providers/runHistoryProvider';
 import { KarateStatusBar } from './statusBar/karateStatus';
 
 let outputChannel: vscode.OutputChannel;
@@ -25,23 +25,10 @@ export async function activate(context: vscode.ExtensionContext) {
         const karateRunner = new KarateRunner(context, outputChannel);
         log('Karate Runner initialized');
 
-        // Initialize Run History Provider
-        let runHistoryProvider = new WebViewProvider(
-            context.extensionUri,
-            'karateRunHistory'
-        );
-
-        // Register WebView Provider for Run History
-        context.subscriptions.push(
-            vscode.window.registerWebviewViewProvider(
-                'karateRunHistory',
-                runHistoryProvider
-            )
-        );
-
         // Set up Feature Tree View
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
         if (workspaceFolder) {
+            // Initialize Feature Explorer
             const featureTreeProvider = new FeatureTreeProvider(
                 workspaceFolder.uri.fsPath,
                 async (filePath: string, scenarioName?: string) => {
@@ -54,13 +41,21 @@ export async function activate(context: vscode.ExtensionContext) {
                 }
             );
 
-            // Register Tree View
-            const treeView = vscode.window.createTreeView('karateFeatureExplorer', {
+            // Initialize Run History
+            const runHistoryProvider = new RunHistoryProvider(workspaceFolder.uri.fsPath);
+
+            // Register Tree Views
+            const featureTreeView = vscode.window.createTreeView('karateFeatureExplorer', {
                 treeDataProvider: featureTreeProvider,
                 showCollapseAll: true
             });
 
-            // Register tree view refresh command
+            const historyTreeView = vscode.window.createTreeView('karateRunHistory', {
+                treeDataProvider: runHistoryProvider,
+                showCollapseAll: true
+            });
+
+            // Register Feature Explorer Commands
             context.subscriptions.push(
                 vscode.commands.registerCommand('karateFeatureExplorer.refresh', () => 
                     featureTreeProvider.refresh()
@@ -77,14 +72,26 @@ export async function activate(context: vscode.ExtensionContext) {
                 })
             );
 
-            // Add tree view to subscriptions
-            context.subscriptions.push(treeView);
+            // Register Run History Commands
+            context.subscriptions.push(
+                vscode.commands.registerCommand('karateRunHistory.refresh', () => 
+                    runHistoryProvider.refresh()
+                ),
+                vscode.commands.registerCommand('karateRunHistory.clearHistory', async () => {
+                    await runHistoryProvider.clearHistory();
+                    vscode.window.showInformationMessage('Test history cleared');
+                }),
+                vscode.commands.registerCommand('karateRunHistory.openReport', (reportPath: string) => {
+                    vscode.env.openExternal(vscode.Uri.file(reportPath));
+                })
+            );
+
+            // Add tree views to subscriptions
+            context.subscriptions.push(featureTreeView, historyTreeView);
 
             // Set providers in runner
-            karateRunner.setViewProviders(null, runHistoryProvider);
-        }
+            karateRunner.setViewProviders(null, null);
 
-        try {
             // Add file watcher for .feature files
             const featureWatcher = vscode.workspace.createFileSystemWatcher('**/*.feature');
             featureWatcher.onDidCreate(() => {
@@ -98,17 +105,6 @@ export async function activate(context: vscode.ExtensionContext) {
             });
             context.subscriptions.push(featureWatcher);
             log('Feature file watcher initialized');
-        } catch (error) {
-            log(`Error setting up file watcher: ${error}`);
-        }
-
-        try {
-            // Register Commands
-            await registerCommands(context, karateRunner);
-            log('Commands registered');
-        } catch (error) {
-            log(`Error registering commands: ${error}`);
-            throw error;
         }
 
         try {
