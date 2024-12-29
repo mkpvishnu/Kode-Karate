@@ -117,17 +117,70 @@ export class CurlConverterPanel {
             <title>Convert to cURL</title>
             <style>
                 body {
-                    padding: 10px;
+                    padding: 24px;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background-color: #1e1e1e;
+                    color: #e1e1e1;
+                }
+                h3 {
+                    color: #569cd6;
+                    margin-bottom: 16px;
+                    font-weight: 600;
+                }
+                .container {
+                    max-width: 800px;
+                    margin: 0 auto;
                 }
                 textarea {
                     width: 100%;
-                    height: 200px;
-                    margin-bottom: 10px;
+                    min-height: 200px;
+                    margin: 12px 0;
+                    padding: 12px;
+                    border: 1px solid #3c3c3c;
+                    border-radius: 6px;
                     font-family: monospace;
+                    font-size: 14px;
+                    transition: border-color 0.2s, box-shadow 0.2s;
+                    background-color: #252526;
+                    color: #e1e1e1;
+                }
+                textarea:focus {
+                    border-color: #569cd6;
+                    outline: none;
+                    box-shadow: 0 0 0 3px rgba(86, 156, 214, 0.1);
+                }
+                .button-container {
+                    margin: 16px 0;
+                    display: flex;
+                    gap: 12px;
                 }
                 button {
-                    margin-right: 10px;
-                    padding: 8px 16px;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 6px;
+                    background-color: #0e639c;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: background-color 0.2s, transform 0.1s;
+                }
+                button:hover {
+                    background-color: #1177bb;
+                }
+                button:active {
+                    transform: scale(0.98);
+                }
+                #output {
+                    margin-top: 20px;
+                    padding: 16px;
+                    background-color: #252526;
+                    border-radius: 6px;
+                    border: 1px solid #3c3c3c;
+                    font-family: monospace;
+                    white-space: pre-wrap;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+                    color: #e1e1e1;
                 }
             </style>
         </head>

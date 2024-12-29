@@ -199,11 +199,11 @@ export class JWTToolPanel {
                 body {
                     padding: 24px;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-                    background-color: #f8f9fa;
-                    color: #212529;
+                    background-color: #1e1e1e;
+                    color: #e1e1e1;
                 }
                 h3 {
-                    color: #0d6efd;
+                    color: #569cd6;
                     margin-bottom: 16px;
                     font-weight: 600;
                 }
@@ -216,41 +216,45 @@ export class JWTToolPanel {
                     min-height: 120px;
                     margin: 12px 0;
                     padding: 12px;
-                    border: 1px solid #dee2e6;
+                    border: 1px solid #3c3c3c;
                     border-radius: 6px;
                     font-family: inherit;
                     font-size: 14px;
                     transition: border-color 0.2s, box-shadow 0.2s;
+                    background-color: #252526;
+                    color: #e1e1e1;
                 }
                 textarea:focus {
-                    border-color: #0d6efd;
+                    border-color: #569cd6;
                     outline: none;
-                    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+                    box-shadow: 0 0 0 3px rgba(86, 156, 214, 0.1);
                 }
                 input[type="text"] {
                     width: 100%;
                     padding: 8px 12px;
                     margin: 8px 0;
-                    border: 1px solid #dee2e6;
+                    border: 1px solid #3c3c3c;
                     border-radius: 6px;
                     font-size: 14px;
                     transition: border-color 0.2s, box-shadow 0.2s;
+                    background-color: #252526;
+                    color: #e1e1e1;
                 }
                 input[type="text"]:focus {
-                    border-color: #0d6efd;
+                    border-color: #569cd6;
                     outline: none;
-                    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+                    box-shadow: 0 0 0 3px rgba(86, 156, 214, 0.1);
                 }
                 .jwt-part {
                     padding: 20px;
                     margin: 16px 0;
                     border-radius: 8px;
-                    background-color: white;
-                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+                    background-color: #252526;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
                 }
-                .jwt-header { border-left: 4px solid #fb015b; }
-                .jwt-payload { border-left: 4px solid #d63aff; }
-                .jwt-signature { border-left: 4px solid #00f5d4; }
+                .jwt-header { border-left: 4px solid #f48771; }
+                .jwt-payload { border-left: 4px solid #dcdcaa; }
+                .jwt-signature { border-left: 4px solid #4ec9b0; }
                 .button-container {
                     margin: 16px 0;
                     display: flex;
@@ -260,7 +264,7 @@ export class JWTToolPanel {
                     padding: 10px 20px;
                     border: none;
                     border-radius: 6px;
-                    background-color: #0d6efd;
+                    background-color: #0e639c;
                     color: white;
                     font-size: 14px;
                     font-weight: 500;
@@ -268,18 +272,18 @@ export class JWTToolPanel {
                     transition: background-color 0.2s, transform 0.1s;
                 }
                 button:hover {
-                    background-color: #0b5ed7;
+                    background-color: #1177bb;
                 }
                 button:active {
                     transform: scale(0.98);
                 }
                 .error {
-                    color: #dc3545;
+                    color: #f48771;
                     margin: 16px 0;
                     padding: 12px;
-                    background-color: #f8d7da;
+                    background-color: #3a1d1d;
                     border-radius: 6px;
-                    border: 1px solid #f5c6cb;
+                    border: 1px solid #5a2d2d;
                 }
                 .validation-status {
                     padding: 12px;
@@ -288,19 +292,19 @@ export class JWTToolPanel {
                     font-weight: 500;
                 }
                 .valid {
-                    background-color: #d1e7dd;
-                    color: #0f5132;
-                    border: 1px solid #badbcc;
+                    background-color: #1e3a1e;
+                    color: #4ec9b0;
+                    border: 1px solid #2e4a2e;
                 }
                 .invalid {
-                    background-color: #f8d7da;
-                    color: #842029;
-                    border: 1px solid #f5c6cb;
+                    background-color: #3a1d1d;
+                    color: #f48771;
+                    border: 1px solid #5a2d2d;
                 }
                 #encodeSection {
                     margin-top: 32px;
                     padding-top: 32px;
-                    border-top: 1px solid #dee2e6;
+                    border-top: 1px solid #3c3c3c;
                 }
             </style>
         </head>
