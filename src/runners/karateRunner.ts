@@ -79,7 +79,8 @@ export class KarateRunner {
 
                 this.outputChannel.clear();
                 this.outputChannel.show(true);
-                this.outputChannel.appendLine('Running Karate test...\n');
+                this.outputChannel.appendLine('Running Karate test...\
+');
 
                 // Build the classpath string
                 const classpath = await this.classpathManager!.getClasspathString();
@@ -96,32 +97,45 @@ export class KarateRunner {
                     args.push('--name', scenarioName);
                 }
 
-                this.outputChannel.appendLine(`Running command: ${this.java11Path} ${args.join(' ')}\n`);
+                this.outputChannel.appendLine(`Running command: ${this.java11Path} ${args.join(' ')}\
+`);
 
                 const process = spawn(this.java11Path, args, {
                     cwd: workspaceFolder.uri.fsPath
                 });
 
                 let testFailed = false;
+                let output = '';
 
                 process.stdout.on('data', (data) => {
-                    const output = data.toString();
-                    if (output.trim()) {
-                        this.outputChannel.append(output);
+                    const text = data.toString();
+                    output += text;
+                    if (text.trim()) {
+                        this.outputChannel.append(text);
                     }
                 });
 
                 process.stderr.on('data', (data) => {
                     const error = data.toString();
+                    output += error;
                     if (error.trim()) {
                         this.outputChannel.append(error);
-                        testFailed = true;
+                        // Only set testFailed if it's a real error, not just warnings
+                        if (!error.includes('WARN') && !error.includes('SLF4J:')) {
+                            testFailed = true;
+                        }
                     }
                 });
 
                 process.on('close', async (code) => {
-                    this.outputChannel.appendLine('\n' + '='.repeat(80));
-                    if (code !== 0 || testFailed) {
+                    this.outputChannel.appendLine('\
+' + '='.repeat(80));
+                    
+                    // Check for actual test failures in the output
+                    const hasFailedScenarios = output.includes('failed:') && !output.includes('failed: 0');
+                    const hasPassedScenarios = output.includes('passed:') && output.includes('passed: 1');
+                    
+                    if (code !== 0 || (testFailed && !hasPassedScenarios) || hasFailedScenarios) {
                         this.outputChannel.appendLine('Test Failed');
                         await this.updateRunHistory(filePath, scenarioName, false);
                         reject(new Error('Test execution failed'));
@@ -130,7 +144,8 @@ export class KarateRunner {
                         await this.updateRunHistory(filePath, scenarioName, true);
                         resolve();
                     }
-                    this.outputChannel.appendLine('='.repeat(80) + '\n');
+                    this.outputChannel.appendLine('='.repeat(80) + '\
+');
 
                     if (this.featureExplorerProvider?.view) {
                         await this.featureExplorerProvider.view.render();
