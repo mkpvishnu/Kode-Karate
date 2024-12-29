@@ -2,14 +2,14 @@
     "name": "kode-karate",
     "displayName": "Kode Karate",
     "description": "Karate DSL support for VS Code with automatic JAR management",
-    "version": "1.0.0",
+    "version": "1.1.0",
     "publisher": "mkpvishnu",
     "engines": {
         "vscode": "^1.60.0"
     },
     "repository": {
         "type": "git",
-        "url": "https://github.com/mkpvishnu/karate-utils-extensions"
+        "url": "https://github.com/mkpvishnu/Kode-Karate"
     },
     "license": "MIT",
     "keywords": [
@@ -85,6 +85,11 @@
                 "command": "karateRunHistory.openReport",
                 "title": "Open Report",
                 "icon": "$(link-external)"
+            },
+            {
+                "command": "karateUtilities.openConverter",
+                "title": "Request to cURL",
+                "icon": "$(terminal)"
             }
         ],
         "viewsContainers": {
@@ -107,6 +112,11 @@
                     "id": "karateRunHistory",
                     "name": "Run History",
                     "icon": "resources/history.svg"
+                },
+                {
+                    "id": "karateUtilities",
+                    "name": "Utilities",
+                    "icon": "resources/tools.svg"
                 }
             ]
         },

@@ -7,6 +7,8 @@ import { KarateCodeLensProvider, KarateCompletionProvider, KarateHoverProvider }
 import { FeatureTreeProvider, FeatureTreeItem } from './providers/featureTreeProvider';
 import { RunHistoryProvider, HistoryTreeItem } from './providers/runHistoryProvider';
 import { KarateStatusBar } from './statusBar/karateStatus';
+import { CurlConverterPanel } from './providers/CurlConverterPanel';
+import { UtilitiesProvider } from './providers/UtilitiesProvider';
 
 let outputChannel: vscode.OutputChannel;
 
@@ -24,6 +26,13 @@ export async function activate(context: vscode.ExtensionContext) {
         // Initialize Karate Runner
         const karateRunner = new KarateRunner(context, outputChannel);
         log('Karate Runner initialized');
+
+        // Register cURL converter command
+        context.subscriptions.push(
+            vscode.commands.registerCommand('karateUtilities.openConverter', () => {
+                CurlConverterPanel.createOrShow(context.extensionPath);
+            })
+        );
 
         // Set up Feature Tree View
         const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
@@ -44,6 +53,9 @@ export async function activate(context: vscode.ExtensionContext) {
             // Initialize Run History
             const runHistoryProvider = new RunHistoryProvider(workspaceFolder.uri.fsPath);
 
+            // Initialize Utilities View
+            const utilitiesProvider = new UtilitiesProvider();
+
             // Register Tree Views
             const featureTreeView = vscode.window.createTreeView('karateFeatureExplorer', {
                 treeDataProvider: featureTreeProvider,
@@ -53,6 +65,10 @@ export async function activate(context: vscode.ExtensionContext) {
             const historyTreeView = vscode.window.createTreeView('karateRunHistory', {
                 treeDataProvider: runHistoryProvider,
                 showCollapseAll: true
+            });
+
+            const utilitiesTreeView = vscode.window.createTreeView('karateUtilities', {
+                treeDataProvider: utilitiesProvider,
             });
 
             // Register Feature Explorer Commands
@@ -87,7 +103,7 @@ export async function activate(context: vscode.ExtensionContext) {
             );
 
             // Add tree views to subscriptions
-            context.subscriptions.push(featureTreeView, historyTreeView);
+            context.subscriptions.push(featureTreeView, historyTreeView, utilitiesTreeView);
 
             // Set providers in runner
             karateRunner.setViewProviders(null, null);
