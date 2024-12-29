@@ -11,6 +11,7 @@ A Visual Studio Code extension that provides comprehensive support for running a
 - Test run history with HTML reports
 - Syntax highlighting for .feature files
 - Run individual scenarios or entire feature files
+- Utility tools for API testing workflows
 
 ## Requirements
 
@@ -52,6 +53,46 @@ Keep track of your test runs:
 3. Click "View Report" to open the HTML report
 4. Use "Clear History" to remove old test runs
 
+### Utilities
+
+The extension provides helpful utilities to enhance your API testing workflow:
+
+#### Request to cURL Converter
+Convert Karate request logs to cURL commands for easy debugging and sharing:
+
+1. Click on the "Request -> cURL" option in the Utilities view
+2. Paste your Karate request log in the input area. Example format:
+   ```
+   1 > POST http://example.com
+   1 > Accept: application/json
+   1 > Content-Type: application/json
+   {"key": "value"}
+   ```
+3. Click "Convert to cURL" to generate the equivalent cURL command
+4. Copy the generated command to use in terminal or share with others
+
+#### Response Diff Tool
+Compare two API responses to identify differences:
+
+1. Click on "Response Diff Tool" in the Utilities view
+2. In the split view:
+   - Left panel: Paste your first JSON response
+   - Right panel: Paste your second JSON response
+3. Use "Format JSON" buttons to prettify each response (optional)
+4. Click "Compare" to see the differences
+5. The tool will highlight:
+   - Value mismatches (orange)
+   - Type mismatches (red)
+   - Missing fields in either response (green/blue)
+   - Exact path to each difference
+
+Features:
+- Color-coded difference highlighting
+- Precise path tracking for each difference
+- JSON formatting support
+- Clear and intuitive visualization
+- Support for complex nested structures
+
 ## Extension Settings
 
 The extension automatically manages most settings, but you can configure:
@@ -86,12 +127,18 @@ Full release of Karate Runner:
 - Add a utilities view
 - New utility for converting request logs to curl commands
 
+#### 1.2.0
+- Added Response Diff Tool in utilities section
+- Enhanced JSON comparison capabilities
+- Visual diff highlighting for API responses
+
 ### Note:
-This extension is not sponsored by Karate or anyway associated with the devs of karate DSL. They are awesome people and they have their own official extension available for both vscode and IntteliJ.Please check out there for official support -> https://www.karatelabs.io/
+This extension is not sponsored by Karate or anyway associated with the devs of karate DSL. They are awesome people and they have their own official extension available for both vscode and IntteliJ. Please check out there for official support -> https://www.karatelabs.io/
 
 ## Contributing
 
 We welcome contributions!
+
 ## License
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
