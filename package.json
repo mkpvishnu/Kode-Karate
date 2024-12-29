@@ -113,7 +113,7 @@
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile",
         "test": "node ./out/test/runTest.js",
-        "package": "vsce package",
+        "package": "vsce package --no-dependencies",
         "publish": "vsce publish"
     },
     "devDependencies": {
@@ -130,5 +130,6 @@
     "dependencies": {
         "glob": "^7.2.0",
         "uuid": "^8.3.2"
-    }
+    },
+    "bundleDependencies": ["uuid", "glob"]
 }
