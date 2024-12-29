@@ -197,52 +197,110 @@ export class JWTToolPanel {
             <title>JWT Tool</title>
             <style>
                 body {
-                    padding: 20px;
+                    padding: 24px;
                     font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                    background-color: #f8f9fa;
+                    color: #212529;
+                }
+                h3 {
+                    color: #0d6efd;
+                    margin-bottom: 16px;
+                    font-weight: 600;
                 }
                 .container {
-                    max-width: 100%;
+                    max-width: 800px;
+                    margin: 0 auto;
                 }
                 textarea {
                     width: 100%;
-                    min-height: 100px;
-                    margin: 10px 0;
-                    padding: 8px;
+                    min-height: 120px;
+                    margin: 12px 0;
+                    padding: 12px;
+                    border: 1px solid #dee2e6;
+                    border-radius: 6px;
+                    font-family: inherit;
+                    font-size: 14px;
+                    transition: border-color 0.2s, box-shadow 0.2s;
+                }
+                textarea:focus {
+                    border-color: #0d6efd;
+                    outline: none;
+                    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
+                }
+                input[type="text"] {
+                    width: 100%;
+                    padding: 8px 12px;
+                    margin: 8px 0;
+                    border: 1px solid #dee2e6;
+                    border-radius: 6px;
+                    font-size: 14px;
+                    transition: border-color 0.2s, box-shadow 0.2s;
+                }
+                input[type="text"]:focus {
+                    border-color: #0d6efd;
+                    outline: none;
+                    box-shadow: 0 0 0 3px rgba(13, 110, 253, 0.1);
                 }
                 .jwt-part {
-                    padding: 15px;
-                    margin: 10px 0;
-                    border-radius: 4px;
+                    padding: 20px;
+                    margin: 16px 0;
+                    border-radius: 8px;
+                    background-color: white;
+                    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
                 }
-                .jwt-header { background-color: #fb015b15; }
-                .jwt-payload { background-color: #d63aff15; }
-                .jwt-signature { background-color: #00f5d415; }
+                .jwt-header { border-left: 4px solid #fb015b; }
+                .jwt-payload { border-left: 4px solid #d63aff; }
+                .jwt-signature { border-left: 4px solid #00f5d4; }
                 .button-container {
-                    margin: 10px 0;
+                    margin: 16px 0;
+                    display: flex;
+                    gap: 12px;
                 }
                 button {
-                    margin-right: 10px;
-                    padding: 8px 16px;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 6px;
+                    background-color: #0d6efd;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: background-color 0.2s, transform 0.1s;
+                }
+                button:hover {
+                    background-color: #0b5ed7;
+                }
+                button:active {
+                    transform: scale(0.98);
                 }
                 .error {
-                    color: #ff4444;
-                    margin: 10px 0;
-                    padding: 10px;
-                    background-color: #ff444410;
-                    border-radius: 4px;
+                    color: #dc3545;
+                    margin: 16px 0;
+                    padding: 12px;
+                    background-color: #f8d7da;
+                    border-radius: 6px;
+                    border: 1px solid #f5c6cb;
                 }
                 .validation-status {
-                    padding: 10px;
-                    margin: 10px 0;
-                    border-radius: 4px;
+                    padding: 12px;
+                    margin: 16px 0;
+                    border-radius: 6px;
+                    font-weight: 500;
                 }
                 .valid {
-                    background-color: #4caf5022;
-                    color: #4caf50;
+                    background-color: #d1e7dd;
+                    color: #0f5132;
+                    border: 1px solid #badbcc;
                 }
                 .invalid {
-                    background-color: #f4433622;
-                    color: #f44336;
+                    background-color: #f8d7da;
+                    color: #842029;
+                    border: 1px solid #f5c6cb;
+                }
+                #encodeSection {
+                    margin-top: 32px;
+                    padding-top: 32px;
+                    border-top: 1px solid #dee2e6;
                 }
             </style>
         </head>
