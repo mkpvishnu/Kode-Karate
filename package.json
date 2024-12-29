@@ -31,26 +31,31 @@
     },
     "activationEvents": [
         "workspaceContains:**/*.feature",
-        "onLanguage:karate",
-        "onCommand:karate-runner.runTest",
-        "onCommand:karate-runner.runScenario"
+        "onLanguage:karate"
     ],
     "main": "./out/extension.js",
     "contributes": {
+        "languages": [
+            {
+                "id": "karate",
+                "aliases": [
+                    "Karate",
+                    "karate"
+                ],
+                "extensions": [
+                    ".feature"
+                ],
+                "configuration": "./language-configuration.json"
+            }
+        ],
+        "grammars": [
+            {
+                "language": "karate",
+                "scopeName": "source.karate",
+                "path": "./syntaxes/karate.tmLanguage.json"
+            }
+        ],
         "commands": [
-            {
-                "command": "karate-runner.runTest",
-                "title": "Karate: Run Test"
-            },
-            {
-                "command": "karate-runner.runScenario",
-                "title": "Karate: Run Scenario"
-            },
-            {
-                "command": "karateFeatureExplorer.refresh",
-                "title": "Refresh",
-                "icon": "$(refresh)"
-            },
             {
                 "command": "karateFeatureExplorer.runFeature",
                 "title": "Run Feature",
@@ -60,6 +65,11 @@
                 "command": "karateFeatureExplorer.runScenario",
                 "title": "Run Scenario",
                 "icon": "$(play)"
+            },
+            {
+                "command": "karateFeatureExplorer.refresh",
+                "title": "Refresh",
+                "icon": "$(refresh)"
             },
             {
                 "command": "karateRunHistory.refresh",
@@ -101,6 +111,13 @@
             ]
         },
         "menus": {
+            "editor/title": [
+                {
+                    "when": "resourceLangId == karate",
+                    "command": "karateFeatureExplorer.runFeature",
+                    "group": "navigation"
+                }
+            ],
             "view/title": [
                 {
                     "command": "karateFeatureExplorer.refresh",

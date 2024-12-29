@@ -1,84 +1,67 @@
 {
     "name": "Karate",
     "scopeName": "source.karate",
-    "fileTypes": ["feature"],
     "patterns": [
         {
-            "match": "^\\s*(Feature:|Scenario:|Background:|Scenario Outline:|Examples:)",
-            "name": "keyword.control.karate"
+            "include": "#feature"
         },
         {
-            "match": "^\\s*(Given|When|Then|And|But)\\b",
-            "name": "keyword.gherkin.karate"
+            "include": "#scenario"
         },
         {
-            "match": "\\b(def|path|url|method|status|match|assert|contains|print|read|callonce|call)\\b",
-            "name": "support.function.karate"
+            "include": "#steps"
         },
         {
-            "begin": "#",
-            "end": "$",
-            "name": "comment.line.number-sign.karate"
+            "include": "#comments"
         },
         {
-            "begin": "\"",
-            "end": "\"",
-            "name": "string.quoted.double.karate"
+            "include": "#strings"
         },
         {
-            "begin": "'",
-            "end": "'",
-            "name": "string.quoted.single.karate"
-        },
-        {
-            "match": "\\b(true|false|null)\\b",
-            "name": "constant.language.karate"
-        },
-        {
-            "match": "\\b\\d+(\\.\\d+)?\\b",
-            "name": "constant.numeric.karate"
-        },
-        {
-            "begin": "\\{",
-            "end": "\\}",
-            "patterns": [
-                {
-                    "include": "#json-content"
-                }
-            ],
-            "name": "meta.structure.dictionary.json.karate"
+            "include": "#variables"
         }
     ],
     "repository": {
-        "json-content": {
+        "feature": {
+            "match": "^\\s*(Feature:)(.*)$",
+            "captures": {
+                "1": { "name": "keyword.control.karate" },
+                "2": { "name": "entity.name.type.karate" }
+            }
+        },
+        "scenario": {
+            "match": "^\\s*(Scenario:|Scenario Outline:|Background:)(.*)$",
+            "captures": {
+                "1": { "name": "keyword.control.karate" },
+                "2": { "name": "entity.name.function.karate" }
+            }
+        },
+        "steps": {
+            "match": "^\\s*(Given|When|Then|And|But|\\*)(\\s+)(.*)$",
+            "captures": {
+                "1": { "name": "keyword.control.karate" },
+                "3": { "name": "string.unquoted.karate" }
+            }
+        },
+        "comments": {
+            "match": "#.*$",
+            "name": "comment.line.number-sign.karate"
+        },
+        "strings": {
             "patterns": [
                 {
-                    "match": "\"([^\"]*)\"\\s*:",
-                    "name": "string.quoted.double.json.key.karate"
+                    "match": "'[^']*'",
+                    "name": "string.quoted.single.karate"
                 },
                 {
-                    "include": "#string"
-                },
-                {
-                    "include": "#constant"
-                },
-                {
-                    "include": "#number"
+                    "match": "\"[^\"]*\"",
+                    "name": "string.quoted.double.karate"
                 }
             ]
         },
-        "string": {
-            "begin": "\"",
-            "end": "\"",
-            "name": "string.quoted.double.json.value.karate"
-        },
-        "constant": {
-            "match": "\\b(true|false|null)\\b",
-            "name": "constant.language.json.karate"
-        },
-        "number": {
-            "match": "-?\\d+(\\.\\d+)?([eE][+-]?\\d+)?",
-            "name": "constant.numeric.json.karate"
+        "variables": {
+            "match": "\\$\\{[^}]+\\}",
+            "name": "variable.other.karate"
         }
     }
 }
