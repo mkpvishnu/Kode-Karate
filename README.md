@@ -82,6 +82,10 @@ Full release of Karate Runner:
 - Better and more seamless output format.
 - Fixed some critical bugs
 
+#### 1.1.0
+- Add a utilities view
+- New utility for converting request logs to curl commands
+
 ### Note:
 This extension is not sponsored by Karate or anyway associated with the devs of karate DSL. They are awesome people and they have their own official extension available for both vscode and IntteliJ.Please check out there for official support -> https://www.karatelabs.io/
 
