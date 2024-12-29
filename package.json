@@ -95,6 +95,11 @@
                 "command": "karateUtilities.openResponseDiff",
                 "title": "Compare API Responses",
                 "icon": "$(diff)"
+            },
+            {
+                "command": "karateUtilities.openJWTTool",
+                "title": "JWT Encode/Decode Tool",
+                "icon": "$(key)"
             }
         ],
         "viewsContainers": {
