@@ -1,0 +1,14 @@
+<svg width="200" height="200" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="beltGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#ffcc00;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6600;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <path d="M30 30 L30 170" stroke="black" stroke-width="20" stroke-linecap="round" />
+  <path d="M30 100 L150 30" stroke="url(#beltGradient)" stroke-width="30" stroke-linecap="round" />
+  <path d="M30 100 L120 170" stroke="black" stroke-width="20" stroke-linecap="round" />
+
+  <text x="10" y="195" font-family="Arial" font-size="16" fill="black">Kode Karate</text>
+</svg>

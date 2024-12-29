@@ -11,8 +11,8 @@
         { "open": "{", "close": "}" },
         { "open": "[", "close": "]" },
         { "open": "(", "close": ")" },
-        { "open": "'", "close": "'" },
-        { "open": "\"", "close": "\"" }
+        { "open": "'", "close": "'", "notIn": ["string", "comment"] },
+        { "open": "\"", "close": "\"", "notIn": ["string", "comment"] }
     ],
     "surroundingPairs": [
         ["{", "}"],
@@ -20,5 +20,9 @@
         ["(", ")"],
         ["'", "'"],
         ["\"", "\""]
-    ]
+    ],
+    "indentationRules": {
+        "increaseIndentPattern": "^\\s*(Feature:|Scenario:|Scenario Outline:|Background:|Given|When|Then|And|But|\\*).*$",
+        "decreaseIndentPattern": "^\\s*$"
+    }
 }

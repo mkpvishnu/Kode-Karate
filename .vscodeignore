@@ -8,3 +8,9 @@ vsc-extension-quickstart.md
 **/.eslintrc.json
 **/*.map
 **/*.ts
+out/test/**
+!out/**/*.js
+!resources/**
+node_modules/**
+!node_modules/uuid/**
+target/**

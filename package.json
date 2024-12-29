@@ -1,50 +1,150 @@
 {
-    "name": "karate-runner",
-    "displayName": "Karate Runner",
+    "name": "kode-karate",
+    "displayName": "Kode Karate",
     "description": "Karate DSL support for VS Code with automatic JAR management",
-    "version": "0.0.1",
-    "publisher": "karate-runner",
+    "version": "1.0.0",
+    "publisher": "mkpvishnu",
     "engines": {
         "vscode": "^1.60.0"
     },
+    "repository": {
+        "type": "git",
+        "url": "https://github.com/mkpvishnu/karate-utils-extensions"
+    },
+    "license": "MIT",
+    "keywords": [
+        "karate",
+        "testing",
+        "api testing",
+        "bdd",
+        "cucumber"
+    ],
     "categories": [
         "Programming Languages",
-        "Testing"
+        "Testing",
+        "Debuggers"
     ],
+    "icon": "resources/karate.jpeg",
+    "galleryBanner": {
+        "color": "#C80000",
+        "theme": "dark"
+    },
     "activationEvents": [
-        "onLanguage:karate",
-        "onCommand:karate-runner.runTest",
-        "onCommand:karate-runner.runScenario"
+        "workspaceContains:**/*.feature",
+        "onLanguage:karate"
     ],
     "main": "./out/extension.js",
     "contributes": {
-        "languages": [{
-            "id": "karate",
-            "aliases": ["Karate", "karate"],
-            "extensions": [".feature"],
-            "configuration": "./language-configuration.json"
-        }],
-        "grammars": [{
-            "language": "karate",
-            "scopeName": "source.karate",
-            "path": "./syntaxes/karate.tmLanguage.json"
-        }],
-        "commands": [
+        "languages": [
             {
-                "command": "karate-runner.runTest",
-                "title": "Karate: Run Test"
-            },
-            {
-                "command": "karate-runner.runScenario",
-                "title": "Karate: Run Scenario"
+                "id": "karate",
+                "aliases": [
+                    "Karate",
+                    "karate"
+                ],
+                "extensions": [
+                    ".feature"
+                ],
+                "configuration": "./language-configuration.json"
             }
         ],
+        "grammars": [
+            {
+                "language": "karate",
+                "scopeName": "source.karate",
+                "path": "./syntaxes/karate.tmLanguage.json"
+            }
+        ],
+        "commands": [
+            {
+                "command": "karateFeatureExplorer.runFeature",
+                "title": "Run Feature",
+                "icon": "$(play)"
+            },
+            {
+                "command": "karateFeatureExplorer.runScenario",
+                "title": "Run Scenario",
+                "icon": "$(play)"
+            },
+            {
+                "command": "karateFeatureExplorer.refresh",
+                "title": "Refresh",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "karateRunHistory.refresh",
+                "title": "Refresh History",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "karateRunHistory.clearHistory",
+                "title": "Clear History",
+                "icon": "$(trash)"
+            },
+            {
+                "command": "karateRunHistory.openReport",
+                "title": "Open Report",
+                "icon": "$(link-external)"
+            }
+        ],
+        "viewsContainers": {
+            "activitybar": [
+                {
+                    "id": "karate-runner-sidebar",
+                    "title": "Kode Karate",
+                    "icon": "resources/karate.svg"
+                }
+            ]
+        },
+        "views": {
+            "karate-runner-sidebar": [
+                {
+                    "id": "karateFeatureExplorer",
+                    "name": "Feature Explorer",
+                    "icon": "resources/feature.svg"
+                },
+                {
+                    "id": "karateRunHistory",
+                    "name": "Run History",
+                    "icon": "resources/history.svg"
+                }
+            ]
+        },
         "menus": {
             "editor/title": [
                 {
-                    "when": "resourceExtname == .feature",
-                    "command": "karate-runner.runTest",
+                    "when": "resourceLangId == karate",
+                    "command": "karateFeatureExplorer.runFeature",
                     "group": "navigation"
+                }
+            ],
+            "view/title": [
+                {
+                    "command": "karateFeatureExplorer.refresh",
+                    "when": "view == karateFeatureExplorer",
+                    "group": "navigation"
+                },
+                {
+                    "command": "karateRunHistory.refresh",
+                    "when": "view == karateRunHistory",
+                    "group": "navigation"
+                },
+                {
+                    "command": "karateRunHistory.clearHistory",
+                    "when": "view == karateRunHistory",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "karateFeatureExplorer.runFeature",
+                    "when": "viewItem == feature",
+                    "group": "inline"
+                },
+                {
+                    "command": "karateFeatureExplorer.runScenario",
+                    "when": "viewItem == scenario",
+                    "group": "inline"
                 }
             ]
         }
@@ -54,7 +154,9 @@
         "compile": "tsc -p ./",
         "watch": "tsc -watch -p ./",
         "pretest": "npm run compile",
-        "test": "node ./out/test/runTest.js"
+        "test": "node ./out/test/runTest.js",
+        "package": "vsce package --no-dependencies",
+        "publish": "vsce publish"
     },
     "devDependencies": {
         "@types/vscode": "^1.60.0",
@@ -62,6 +164,14 @@
         "@typescript-eslint/eslint-plugin": "^5.1.0",
         "@typescript-eslint/parser": "^5.1.0",
         "eslint": "^8.1.0",
-        "typescript": "^4.4.4"
-    }
+        "typescript": "^4.4.4",
+        "@types/glob": "^7.2.0",
+        "@types/uuid": "^8.3.0",
+        "@vscode/vsce": "^2.24.0"
+    },
+    "dependencies": {
+        "glob": "^7.2.0",
+        "uuid": "^8.3.2"
+    },
+    "bundleDependencies": ["uuid", "glob"]
 }
