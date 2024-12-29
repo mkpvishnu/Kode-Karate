@@ -7,6 +7,7 @@ import { ConfigurationManager } from '../config';
 import { KarateJarManager } from '../jarManager';
 import { JavaFinder } from '../javaFinder';
 import { getReportPath, openReport } from '../utils/scenarioUtils';
+import { ClasspathManager } from '../utils/classpath/classpathManager';
 
 export class KarateRunner {
     private outputChannel: vscode.OutputChannel;
@@ -15,6 +16,7 @@ export class KarateRunner {
     private java11Path?: string;
     private featureExplorerProvider: any;
     private runHistoryProvider: any;
+    private classpathManager?: ClasspathManager;
 
     constructor(
         context: vscode.ExtensionContext,
@@ -50,6 +52,12 @@ export class KarateRunner {
         }
     }
 
+    private async initializeClasspathManager(workspaceFolder: vscode.WorkspaceFolder) {
+        if (!this.classpathManager) {
+            this.classpathManager = new ClasspathManager(workspaceFolder.uri.fsPath);
+        }
+    }
+
     public async runKarate(filePath: string, scenarioName?: string): Promise<void> {
         return new Promise(async (resolve, reject) => {
             try {
@@ -66,11 +74,23 @@ export class KarateRunner {
                     throw new Error('No workspace folder found');
                 }
 
+                // Initialize classpath manager
+                await this.initializeClasspathManager(workspaceFolder);
+
                 this.outputChannel.clear();
                 this.outputChannel.show(true);
                 this.outputChannel.appendLine('Running Karate test...\n');
 
-                const args = ['-jar', this.karateJarPath, filePath];
+                // Build the classpath string
+                const classpath = await this.classpathManager!.getClasspathString();
+                
+                // Modify the command to include classpath
+                const args = [
+                    '-cp',
+                    `${this.karateJarPath}${path.delimiter}${classpath}`,
+                    'com.intuit.karate.Main',
+                    filePath
+                ];
 
                 if (scenarioName) {
                     args.push('--name', scenarioName);
