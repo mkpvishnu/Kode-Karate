@@ -2,7 +2,7 @@
     "name": "kode-karate",
     "displayName": "Kode Karate",
     "description": "Karate DSL support for VS Code with automatic JAR management",
-    "version": "0.0.1",
+    "version": "1.0.0",
     "publisher": "mkpvishnu",
     "engines": {
         "vscode": "^1.60.0"
