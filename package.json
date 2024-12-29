@@ -49,6 +49,21 @@
             {
                 "command": "karate-runner.clearHistory",
                 "title": "Karate: Clear Run History"
+            },
+            {
+                "command": "karateFeatureExplorer.refresh",
+                "title": "Refresh",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "karateFeatureExplorer.runFeature",
+                "title": "Run Feature",
+                "icon": "$(play)"
+            },
+            {
+                "command": "karateFeatureExplorer.runScenario",
+                "title": "Run Scenario",
+                "icon": "$(play)"
             }
         ],
         "viewsContainers": {
@@ -63,7 +78,6 @@
         "views": {
             "karate-runner-sidebar": [
                 {
-                    "type": "webview",
                     "id": "karateFeatureExplorer",
                     "name": "Feature Explorer",
                     "icon": "resources/feature.svg"
@@ -72,6 +86,27 @@
                     "type": "webview",
                     "id": "karateRunHistory",
                     "name": "Run History"
+                }
+            ]
+        },
+        "menus": {
+            "view/title": [
+                {
+                    "command": "karateFeatureExplorer.refresh",
+                    "when": "view == karateFeatureExplorer",
+                    "group": "navigation"
+                }
+            ],
+            "view/item/context": [
+                {
+                    "command": "karateFeatureExplorer.runFeature",
+                    "when": "viewItem == feature",
+                    "group": "inline"
+                },
+                {
+                    "command": "karateFeatureExplorer.runScenario",
+                    "when": "viewItem == scenario",
+                    "group": "inline"
                 }
             ]
         },
@@ -89,23 +124,7 @@
                 "scopeName": "source.karate",
                 "path": "./syntaxes/karate.tmLanguage.json"
             }
-        ],
-        "menus": {
-            "editor/title": [
-                {
-                    "when": "resourceExtname == .feature",
-                    "command": "karate-runner.runTest",
-                    "group": "navigation"
-                }
-            ],
-            "view/title": [
-                {
-                    "command": "karate-runner.clearHistory",
-                    "when": "view == karateRunHistory",
-                    "group": "navigation"
-                }
-            ]
-        }
+        ]
     },
     "scripts": {
         "vscode:prepublish": "npm run compile",

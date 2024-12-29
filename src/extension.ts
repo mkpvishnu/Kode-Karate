@@ -5,6 +5,7 @@ import { WebViewProvider } from './webview/webviewManager';
 import { KarateRunner } from './runners/karateRunner';
 import { registerCommands } from './commands';
 import { KarateCodeLensProvider, KarateCompletionProvider, KarateHoverProvider } from './providers';
+import { FeatureTreeProvider, FeatureTreeItem } from './providers/featureTreeProvider';
 import { KarateStatusBar } from './statusBar/karateStatus';
 
 let outputChannel: vscode.OutputChannel;
@@ -24,14 +25,25 @@ export async function activate(context: vscode.ExtensionContext) {
         const karateRunner = new KarateRunner(context, outputChannel);
         log('Karate Runner initialized');
 
-        // Initialize WebView Providers
-        let featureExplorerProvider: WebViewProvider;
-        let runHistoryProvider: WebViewProvider;
+        // Initialize Run History Provider
+        let runHistoryProvider = new WebViewProvider(
+            context.extensionUri,
+            'karateRunHistory'
+        );
 
-        try {
-            featureExplorerProvider = new WebViewProvider(
-                context.extensionUri,
-                'karateFeatureExplorer',
+        // Register WebView Provider for Run History
+        context.subscriptions.push(
+            vscode.window.registerWebviewViewProvider(
+                'karateRunHistory',
+                runHistoryProvider
+            )
+        );
+
+        // Set up Feature Tree View
+        const workspaceFolder = vscode.workspace.workspaceFolders?.[0];
+        if (workspaceFolder) {
+            const featureTreeProvider = new FeatureTreeProvider(
+                workspaceFolder.uri.fsPath,
                 async (filePath: string, scenarioName?: string) => {
                     try {
                         await karateRunner.runKarate(filePath, scenarioName);
@@ -41,69 +53,53 @@ export async function activate(context: vscode.ExtensionContext) {
                     }
                 }
             );
-            
-            runHistoryProvider = new WebViewProvider(
-                context.extensionUri,
-                'karateRunHistory'
-            );
-            
-            // Set providers in runner
-            karateRunner.setViewProviders(featureExplorerProvider, runHistoryProvider);
-            log('WebView providers initialized');
-        } catch (error) {
-            log(`Error initializing WebView providers: ${error}`);
-            throw error;
-        }
 
-        try {
-            // Register WebView Providers with deferred registration
-            let webviewRegistrations = [
-                vscode.window.registerWebviewViewProvider(
-                    'karateFeatureExplorer',
-                    featureExplorerProvider
+            // Register Tree View
+            const treeView = vscode.window.createTreeView('karateFeatureExplorer', {
+                treeDataProvider: featureTreeProvider,
+                showCollapseAll: true
+            });
+
+            // Register tree view refresh command
+            context.subscriptions.push(
+                vscode.commands.registerCommand('karateFeatureExplorer.refresh', () => 
+                    featureTreeProvider.refresh()
                 ),
-                vscode.window.registerWebviewViewProvider(
-                    'karateRunHistory',
-                    runHistoryProvider
-                )
-            ];
+                vscode.commands.registerCommand('karateFeatureExplorer.runFeature', (item: FeatureTreeItem) => {
+                    if (item.featurePath) {
+                        karateRunner.runKarate(item.featurePath);
+                    }
+                }),
+                vscode.commands.registerCommand('karateFeatureExplorer.runScenario', (item: FeatureTreeItem) => {
+                    if (item.featurePath && item.label) {
+                        karateRunner.runKarate(item.featurePath, item.label);
+                    }
+                })
+            );
 
-            // Add registrations to subscriptions
-            context.subscriptions.push(...webviewRegistrations);
-            log('WebView providers registered');
+            // Add tree view to subscriptions
+            context.subscriptions.push(treeView);
 
-            // Initial refresh after a short delay
-            setTimeout(() => {
-                log('Performing initial view refresh...');
-                featureExplorerProvider.refresh();
-                runHistoryProvider.refresh();
-            }, 1000);
-
-        } catch (error) {
-            log(`Error registering WebView providers: ${error}`);
-            throw error;
+            // Set providers in runner
+            karateRunner.setViewProviders(null, runHistoryProvider);
         }
 
         try {
             // Add file watcher for .feature files
             const featureWatcher = vscode.workspace.createFileSystemWatcher('**/*.feature');
             featureWatcher.onDidCreate(() => {
-                log('Feature file created, refreshing views...');
-                featureExplorerProvider.refresh();
+                vscode.commands.executeCommand('karateFeatureExplorer.refresh');
             });
             featureWatcher.onDidDelete(() => {
-                log('Feature file deleted, refreshing views...');
-                featureExplorerProvider.refresh();
+                vscode.commands.executeCommand('karateFeatureExplorer.refresh');
             });
             featureWatcher.onDidChange(() => {
-                log('Feature file changed, refreshing views...');
-                featureExplorerProvider.refresh();
+                vscode.commands.executeCommand('karateFeatureExplorer.refresh');
             });
             context.subscriptions.push(featureWatcher);
             log('Feature file watcher initialized');
         } catch (error) {
             log(`Error setting up file watcher: ${error}`);
-            // Non-critical error, don't throw
         }
 
         try {
@@ -129,7 +125,6 @@ export async function activate(context: vscode.ExtensionContext) {
             log('Language providers registered');
         } catch (error) {
             log(`Error registering language providers: ${error}`);
-            // Non-critical error, don't throw
         }
 
         try {
@@ -139,7 +134,6 @@ export async function activate(context: vscode.ExtensionContext) {
             log('Status bar initialized');
         } catch (error) {
             log(`Error initializing status bar: ${error}`);
-            // Non-critical error, don't throw
         }
 
         try {
@@ -149,7 +143,6 @@ export async function activate(context: vscode.ExtensionContext) {
         } catch (error) {
             log(`Warning: Java 11 not found - ${error}`);
             vscode.window.showWarningMessage('Java 11 not found. Please install Java 11 and set JAVA_HOME correctly.');
-            // Non-critical error, don't throw
         }
 
         log('Kode Karate extension activated successfully');
