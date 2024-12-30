@@ -2,7 +2,7 @@
     "name": "kode-karate",
     "displayName": "Kode Karate",
     "description": "Karate DSL support for VS Code with automatic JAR management",
-    "version": "1.2.0",
+    "version": "1.3.0",
     "publisher": "mkpvishnu",
     "engines": {
         "vscode": "^1.60.0"
@@ -95,6 +95,11 @@
                 "command": "karateUtilities.openResponseDiff",
                 "title": "Compare API Responses",
                 "icon": "$(diff)"
+            },
+            {
+                "command": "karateUtilities.openJWTTool",
+                "title": "JWT Encode/Decode Tool",
+                "icon": "$(key)"
             }
         ],
         "viewsContainers": {

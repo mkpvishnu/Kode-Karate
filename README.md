@@ -86,12 +86,29 @@ Compare two API responses to identify differences:
    - Missing fields in either response (green/blue)
    - Exact path to each difference
 
-Features:
-- Color-coded difference highlighting
-- Precise path tracking for each difference
-- JSON formatting support
-- Clear and intuitive visualization
-- Support for complex nested structures
+#### JWT Tool
+A comprehensive JWT (JSON Web Token) encoder and decoder similar to jwt.io:
+
+1. **Decode Mode**:
+   - Paste any JWT token to instantly see:
+     - Decoded Header (pink background)
+     - Decoded Payload (purple background)
+     - Signature section
+   - Human-readable timestamps for:
+     - Expiration time (exp)
+     - Issued at (iat)
+     - Not before (nbf)
+   - Validate token signature with secret key
+   - Check token expiration status
+
+2. **Encode Mode**:
+   - Create new JWT tokens with:
+     - Customizable header
+     - Customizable payload
+     - Multiple signing algorithms (HS256, HS384, HS512)
+     - Secret key input
+   - Format JSON functionality for easy editing
+   - Copy generated token with one click
 
 ## Extension Settings
 
@@ -131,6 +148,10 @@ Full release of Karate Runner:
 - Added Response Diff Tool in utilities section
 - Enhanced JSON comparison capabilities
 - Visual diff highlighting for API responses
+
+#### 1.3.0
+- Added JWT tool
+- UI optimization for Utilities
 
 ### Note:
 This extension is not sponsored by Karate or anyway associated with the devs of karate DSL. They are awesome people and they have their own official extension available for both vscode and IntteliJ. Please check out there for official support -> https://www.karatelabs.io/

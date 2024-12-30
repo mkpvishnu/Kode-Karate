@@ -194,17 +194,25 @@ export class ResponseDiffPanel {
             <title>Response Diff Tool</title>
             <style>
                 body {
-                    padding: 10px;
+                    padding: 24px;
                     display: flex;
                     flex-direction: column;
                     height: 100vh;
                     box-sizing: border-box;
+                    background-color: #1e1e1e;
+                    color: #e1e1e1;
+                    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+                }
+                h3 {
+                    color: #569cd6;
+                    margin-bottom: 16px;
+                    font-weight: 600;
                 }
                 .container {
                     display: flex;
-                    gap: 10px;
+                    gap: 16px;
                     flex: 1;
-                    margin-bottom: 10px;
+                    margin-bottom: 16px;
                 }
                 .input-container {
                     flex: 1;
@@ -216,35 +224,74 @@ export class ResponseDiffPanel {
                     flex: 1;
                     font-family: monospace;
                     resize: none;
+                    padding: 12px;
+                    background-color: #252526;
+                    border: 1px solid #3c3c3c;
+                    border-radius: 6px;
+                    color: #e1e1e1;
+                    font-size: 14px;
+                    transition: border-color 0.2s, box-shadow 0.2s;
+                }
+                textarea:focus {
+                    border-color: #569cd6;
+                    outline: none;
+                    box-shadow: 0 0 0 3px rgba(86, 156, 214, 0.1);
                 }
                 .button-container {
                     display: flex;
-                    gap: 10px;
-                    margin-bottom: 10px;
+                    gap: 12px;
+                    margin-bottom: 16px;
                 }
                 button {
-                    padding: 8px 16px;
+                    padding: 10px 20px;
+                    border: none;
+                    border-radius: 6px;
+                    background-color: #0e639c;
+                    color: white;
+                    font-size: 14px;
+                    font-weight: 500;
+                    cursor: pointer;
+                    transition: background-color 0.2s, transform 0.1s;
+                }
+                button:hover {
+                    background-color: #1177bb;
+                }
+                button:active {
+                    transform: scale(0.98);
                 }
                 .output {
-                    border: 1px solid #ccc;
-                    padding: 10px;
-                    margin-top: 10px;
+                    background-color: #252526;
+                    border: 1px solid #3c3c3c;
+                    padding: 16px;
+                    margin-top: 16px;
                     font-family: monospace;
                     white-space: pre-wrap;
                     flex: 1;
                     overflow: auto;
+                    border-radius: 6px;
                 }
                 .diff-item {
-                    margin-bottom: 10px;
-                    padding: 5px;
-                    border-left: 3px solid;
+                    margin-bottom: 12px;
+                    padding: 8px;
+                    border-left: 4px solid;
+                    background-color: #2d2d2d;
+                    border-radius: 4px;
                 }
-                .type-mismatch { border-color: #ff4444; }
-                .value-mismatch { border-color: #ffaa00; }
-                .missing-first { border-color: #44ff44; }
-                .missing-second { border-color: #4444ff; }
-                .path { font-weight: bold; }
-                .error { color: #ff4444; }
+                .type-mismatch { border-color: #f48771; }
+                .value-mismatch { border-color: #ffcc00; }
+                .missing-first { border-color: #4ec9b0; }
+                .missing-second { border-color: #9cdcfe; }
+                .path {
+                    font-weight: bold;
+                    color: #dcdcaa;
+                }
+                .error {
+                    color: #f48771;
+                    background-color: #3a1d1d;
+                    padding: 8px;
+                    border-radius: 4px;
+                    margin: 8px 0;
+                }
             </style>
         </head>
         <body>

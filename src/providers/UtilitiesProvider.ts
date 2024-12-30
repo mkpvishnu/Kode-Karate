@@ -1,6 +1,7 @@
 import * as vscode from 'vscode';
 import { CurlConverterPanel } from './CurlConverterPanel';
 import { ResponseDiffPanel } from './ResponseDiffPanel';
+import { JWTToolPanel } from './JWTToolPanel';
 
 export class UtilitiesProvider implements vscode.TreeDataProvider<UtilityItem> {
     private _onDidChangeTreeData: vscode.EventEmitter<UtilityItem | undefined | null | void> = new vscode.EventEmitter<UtilityItem | undefined | null | void>();
@@ -29,6 +30,15 @@ export class UtilitiesProvider implements vscode.TreeDataProvider<UtilityItem> {
                     title: 'Compare API Responses',
                     arguments: []
                 }
+            ),
+            new UtilityItem(
+                'JWT Tool',
+                vscode.TreeItemCollapsibleState.None,
+                {
+                    command: 'karateUtilities.openJWTTool',
+                    title: 'JWT Encode/Decode Tool',
+                    arguments: []
+                }
             )
         ];
     }
@@ -42,8 +52,19 @@ class UtilityItem extends vscode.TreeItem {
     ) {
         super(label, collapsibleState);
         this.command = command;
-        // Changed to arrow-right icon which better represents transformation/conversion
-        this.iconPath = new vscode.ThemeIcon(label === 'Response Diff Tool' ? 'diff' : 'arrow-swap');
+        
+        // Assign appropriate icons based on utility type
+        switch (label) {
+            case 'Response Diff Tool':
+                this.iconPath = new vscode.ThemeIcon('diff');
+                break;
+            case 'JWT Tool':
+                this.iconPath = new vscode.ThemeIcon('key');
+                break;
+            default:
+                this.iconPath = new vscode.ThemeIcon('arrow-swap');
+        }
+        
         this.contextValue = 'utility';
     }
 }
