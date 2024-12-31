@@ -8,6 +8,7 @@ A Visual Studio Code extension that provides comprehensive support for running a
 - Run Karate tests directly from VS Code
 - Automatic Karate JAR management
 - Feature file explorer
+- Bug tracking across feature files
 - Test run history with HTML reports
 - Syntax highlighting for .feature files
 - Run individual scenarios or entire feature files
@@ -52,6 +53,47 @@ Keep track of your test runs:
 2. View past test runs with their results
 3. Click "View Report" to open the HTML report
 4. Use "Clear History" to remove old test runs
+
+### Bug Explorer
+
+Track and manage bugs across your feature files:
+
+1. Tag bugs in your scenarios:
+   ```gherkin
+   @bug/JIRA-1234
+   Scenario: Test with known issue
+   ```
+
+2. Configure bug tracking:
+   - API endpoint for your bug tracking system
+   - Status field mappings
+   - Response parsing rules
+
+3. Features:
+   - Folder-based organization of bugs
+   - Quick navigation to bug scenarios
+   - Real-time status updates from your bug tracker
+   - Customizable status display
+   - Support for multiple bug tracking systems
+
+4. Example Configuration:
+   ```json
+   {
+     "apiEndpoint": "https://your-jira.com/api/issue/{{id}}",
+     "headers": {
+       "Authorization": "Bearer your-token"
+     },
+     "responseParser": {
+       "statusPath": "fields.status.name",
+       "titlePath": "fields.summary",
+       "statusMapping": {
+         "In Progress": "In Progress",
+         "Done": "Closed",
+         "To Do": "Open"
+       }
+     }
+   }
+   ```
 
 ### Utilities
 
@@ -116,6 +158,7 @@ The extension automatically manages most settings, but you can configure:
 
 - Java path (if not automatically detected)
 - Karate JAR version (defaults to latest)
+- Bug tracker integration settings
 
 ## Known Issues
 
@@ -123,16 +166,28 @@ Please report issues on our [GitHub repository](link-to-your-repo/issues).
 
 ## Release Notes
 
-#### 0.0.1
+### 1.4.0
+- Added Bug Explorer view
+- Support for tracking bugs across feature files
+- Integration with bug tracking systems (configurable)
+- Folder-based organization of bugs
+- Quick navigation to bug scenarios
+- Customizable status mapping and response parsing
 
-Initial release of Karate Runner:
-- Basic test running capabilities
-- Feature explorer
-- Run history
-- Automatic JAR management
+### 1.3.0
+- Added JWT tool
+- UI optimization for Utilities
 
-#### 1.0.0
+### 1.2.0
+- Added Response Diff Tool in utilities section
+- Enhanced JSON comparison capabilities
+- Visual diff highlighting for API responses
 
+### 1.1.0
+- Add a utilities view
+- New utility for converting request logs to curl commands
+
+### 1.0.0
 Full release of Karate Runner:
 - Better Feature Explorer
 - Better Run History
@@ -140,18 +195,12 @@ Full release of Karate Runner:
 - Better and more seamless output format.
 - Fixed some critical bugs
 
-#### 1.1.0
-- Add a utilities view
-- New utility for converting request logs to curl commands
-
-#### 1.2.0
-- Added Response Diff Tool in utilities section
-- Enhanced JSON comparison capabilities
-- Visual diff highlighting for API responses
-
-#### 1.3.0
-- Added JWT tool
-- UI optimization for Utilities
+### 0.0.1
+Initial release of Karate Runner:
+- Basic test running capabilities
+- Feature explorer
+- Run history
+- Automatic JAR management
 
 ### Note:
 This extension is not sponsored by Karate or anyway associated with the devs of karate DSL. They are awesome people and they have their own official extension available for both vscode and IntteliJ. Please check out there for official support -> https://www.karatelabs.io/

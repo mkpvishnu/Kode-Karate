@@ -2,7 +2,7 @@
     "name": "kode-karate",
     "displayName": "Kode Karate",
     "description": "Karate DSL support for VS Code with automatic JAR management",
-    "version": "1.3.0",
+    "version": "1.4.0",
     "publisher": "mkpvishnu",
     "engines": {
         "vscode": "^1.60.0"
@@ -35,6 +35,74 @@
     ],
     "main": "./out/extension.js",
     "contributes": {
+        "configuration": {
+            "title": "Karate Bug Explorer",
+            "properties": {
+                "karateRunner.bugTracker.apiEndpoint": {
+                    "type": "string",
+                    "default": "",
+                    "description": "API endpoint for bug status. Use {{id}} as placeholder for the bug ID."
+                },
+                "karateRunner.bugTracker.method": {
+                    "type": "string",
+                    "enum": ["GET", "POST"],
+                    "default": "GET",
+                    "description": "HTTP method for the API call"
+                },
+                "karateRunner.bugTracker.headers": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Headers to be sent with the API request"
+                },
+                "karateRunner.bugTracker.payload": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Request payload template for POST requests. Use {{id}} as placeholder."
+                },
+                "karateRunner.bugTracker.idPattern": {
+                    "type": "string",
+                    "default": "@bug/{{id}}",
+                    "description": "Pattern to identify bug IDs in feature files. Use {{id}} as placeholder."
+                },
+                "karateRunner.bugTracker.responseParser": {
+                    "type": "object",
+                    "properties": {
+                        "statusPath": {
+                            "type": "string",
+                            "default": "issue.status_id",
+                            "description": "JSON path to status field in response"
+                        },
+                        "titlePath": {
+                            "type": "string",
+                            "default": "issue.title",
+                            "description": "JSON path to title field in response"
+                        },
+                        "linkPath": {
+                            "type": "string",
+                            "default": "issue.key",
+                            "description": "JSON path to link/key field in response"
+                        },
+                        "statusMapping": {
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "default": {
+                                "18": "Open",
+                                "284": "In Progress",
+                                "119": "On Hold",
+                                "71": "Deferred",
+                                "289": "Invalid",
+                                "725": "Duplicate"
+                            },
+                            "description": "Mapping of API status values to display values"
+                        }
+                    },
+                    "required": ["statusPath", "titlePath", "linkPath", "statusMapping"],
+                    "description": "Configuration for parsing API response"
+                }
+            }
+        },
         "languages": [
             {
                 "id": "karate",
@@ -56,6 +124,16 @@
             }
         ],
         "commands": [
+            {
+                "command": "karateBugExplorer.refresh",
+                "title": "Refresh Bugs",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "karateBugExplorer.configure",
+                "title": "Configure Bug Tracker",
+                "icon": "$(gear)"
+            },
             {
                 "command": "karateFeatureExplorer.runFeature",
                 "title": "Run Feature",
@@ -85,21 +163,6 @@
                 "command": "karateRunHistory.openReport",
                 "title": "Open Report",
                 "icon": "$(link-external)"
-            },
-            {
-                "command": "karateUtilities.openConverter",
-                "title": "Request to cURL",
-                "icon": "$(terminal)"
-            },
-            {
-                "command": "karateUtilities.openResponseDiff",
-                "title": "Compare API Responses",
-                "icon": "$(diff)"
-            },
-            {
-                "command": "karateUtilities.openJWTTool",
-                "title": "JWT Encode/Decode Tool",
-                "icon": "$(key)"
             }
         ],
         "viewsContainers": {
@@ -127,6 +190,11 @@
                     "id": "karateUtilities",
                     "name": "Utilities",
                     "icon": "resources/tools.svg"
+                },
+                {
+                    "id": "karateBugExplorer",
+                    "name": "Bug Explorer",
+                    "icon": "resources/bug.svg"
                 }
             ]
         },
@@ -139,6 +207,16 @@
                 }
             ],
             "view/title": [
+                {
+                    "command": "karateBugExplorer.refresh",
+                    "when": "view == karateBugExplorer",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "karateBugExplorer.configure",
+                    "when": "view == karateBugExplorer",
+                    "group": "navigation@2"
+                },
                 {
                     "command": "karateFeatureExplorer.refresh",
                     "when": "view == karateFeatureExplorer",
