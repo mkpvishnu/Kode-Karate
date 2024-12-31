@@ -5,9 +5,19 @@ import { BugItem } from './bugItem';
 import { BugInfo, BugConfig } from '../../models/bugConfig';
 import { BugStatusService } from '../../services/bugStatusService';
 
-export class BugExplorerProvider implements vscode.TreeDataProvider<BugItem> {
-    private _onDidChangeTreeData: vscode.EventEmitter<BugItem | undefined | null | void> = new vscode.EventEmitter<BugItem | undefined | null | void>();
-    readonly onDidChangeTreeData: vscode.Event<BugItem | undefined | null | void> = this._onDidChangeTreeData.event;
+class DirectoryItem extends vscode.TreeItem {
+    constructor(
+        public readonly label: string,
+        public readonly bugs: BugInfo[]
+    ) {
+        super(label, vscode.TreeItemCollapsibleState.Expanded);
+        this.contextValue = 'directory';
+    }
+}
+
+export class BugExplorerProvider implements vscode.TreeDataProvider<vscode.TreeItem> {
+    private _onDidChangeTreeData: vscode.EventEmitter<vscode.TreeItem | undefined | null | void> = new vscode.EventEmitter<vscode.TreeItem | undefined | null | void>();
+    readonly onDidChangeTreeData: vscode.Event<vscode.TreeItem | undefined | null | void> = this._onDidChangeTreeData.event;
 
     private bugList: BugInfo[] = [];
     private config: BugConfig | undefined;
@@ -17,7 +27,7 @@ export class BugExplorerProvider implements vscode.TreeDataProvider<BugItem> {
         this.scanWorkspace();
     }
 
-    private loadConfiguration(): void {
+    loadConfiguration(): void {
         const config = vscode.workspace.getConfiguration();
         this.config = {
             apiEndpoint: config.get('karateRunner.bugTracker.apiEndpoint', ''),
@@ -26,35 +36,60 @@ export class BugExplorerProvider implements vscode.TreeDataProvider<BugItem> {
             method: config.get('karateRunner.bugTracker.method', 'GET') as 'GET' | 'POST',
             payload: config.get('karateRunner.bugTracker.payload', ''),
             responseParser: config.get('karateRunner.bugTracker.responseParser', {
-                statusPath: 'status',
-                titlePath: 'title',
-                linkPath: 'url',
+                statusPath: 'issue.status_id',
+                titlePath: 'issue.title',
+                linkPath: 'issue.key',
                 statusMapping: {}
             })
         };
     }
 
-    public getTreeItem(element: BugItem): vscode.TreeItem {
+    getTreeItem(element: vscode.TreeItem): vscode.TreeItem {
         return element;
     }
 
-    public getChildren(element?: BugItem): Thenable<BugItem[]> {
+    async getChildren(element?: vscode.TreeItem): Promise<vscode.TreeItem[]> {
         if (!this.workspaceRoot) {
             return Promise.resolve([]);
         }
 
-        if (element) {
-            return Promise.resolve([]); // No nested items for now
-        } else {
-            return Promise.resolve(this.getBugItems());
+        // If element is a directory, return its bugs
+        if (element instanceof DirectoryItem) {
+            return element.bugs
+                .sort((a, b) => a.scenarioName.localeCompare(b.scenarioName))
+                .map(bug => new BugItem(bug, vscode.TreeItemCollapsibleState.None));
         }
+
+        // Root level - group bugs by directory
+        const bugsByDir = new Map<string, BugInfo[]>();
+        for (const bug of this.bugList) {
+            const dirPath = path.dirname(bug.filePath);
+            const relativePath = path.relative(this.workspaceRoot, dirPath);
+            const dirName = relativePath || 'Root';
+
+            if (!bugsByDir.has(dirName)) {
+                bugsByDir.set(dirName, []);
+            }
+            bugsByDir.get(dirName)?.push(bug);
+        }
+
+        // Convert to array and sort
+        const entries = Array.from(bugsByDir.entries())
+            .sort(([a], [b]) => a.localeCompare(b));
+
+        // If only one directory, return bugs directly
+        if (entries.length === 1) {
+            const [, bugs] = entries[0];
+            return bugs
+                .sort((a, b) => a.scenarioName.localeCompare(b.scenarioName))
+                .map(bug => new BugItem(bug, vscode.TreeItemCollapsibleState.None));
+        }
+
+        // Multiple directories - return directory items
+        return entries.map(([dirName, bugs]) => new DirectoryItem(dirName, bugs));
     }
 
-    private async getBugItems(): Promise<BugItem[]> {
-        return this.bugList.map(bug => new BugItem(bug, vscode.TreeItemCollapsibleState.None));
-    }
-
-    public refresh(): void {
+    refresh(): void {
         this.loadConfiguration();
         this.scanWorkspace();
         BugStatusService.getInstance().clearCache();
@@ -76,13 +111,6 @@ export class BugExplorerProvider implements vscode.TreeDataProvider<BugItem> {
             const bugs = this.findBugsInFile(content, file.fsPath);
             this.bugList.push(...bugs);
         }
-
-        // Sort bugs by file path and line number
-        this.bugList.sort((a, b) => {
-            const pathCompare = a.filePath.localeCompare(b.filePath);
-            if (pathCompare !== 0) return pathCompare;
-            return a.lineNumber - b.lineNumber;
-        });
 
         // Update bug statuses
         if (this.config.apiEndpoint) {
