@@ -1,5 +1,5 @@
 import * as vscode from 'vscode';
-import fetch from 'node-fetch';
+import axios from 'axios';
 import { BugConfig, BugStatus } from '../models/bugConfig';
 
 export class BugStatusService {
@@ -26,23 +26,32 @@ export class BugStatusService {
         try {
             const endpoint = this.replacePlaceholders(config.apiEndpoint, bugId);
             const payload = config.payload ? this.replacePlaceholders(config.payload, bugId) : undefined;
-            console.log(`Fetching bug status from ${endpoint}`);
-            console.log(`Payload: ${payload}`);
-            console.log(`Headers: ${JSON.stringify(config.headers)}`);
 
-            const response = await fetch(endpoint, {
-                method: config.method,
-                headers: config.headers,
-                body: payload
-            });
-            console.log(`Response status: ${response.status}`);
-            console.log(`Response body: ${response.body}`);
+            // Add required headers - keep it minimal based on working axios test
+            const headers = {
+                'x-requested-with': 'XMLHttpRequest',
+                ...config.headers  // This should include your authorization token
+            };
 
-            if (!response.ok) {
-                throw new Error(`API request failed: ${response.statusText}`);
+            console.log('Fetching bug status from', endpoint);
+            console.log('Method:', config.method);
+            console.log('Headers:', JSON.stringify(headers, null, 2));
+            if (payload) {
+                console.log('Payload:', payload);
             }
 
-            const data = await response.json();
+            const response = await axios({
+                method: config.method,
+                url: endpoint,
+                headers: headers,
+                data: payload // axios uses data instead of body
+            });
+
+            console.log('Response status:', response.status);
+
+            const data = response.data;
+            console.log('Response data:', JSON.stringify(data, null, 2));
+
             const status: BugStatus = {
                 id: bugId,
                 status: this.extractStatus(data, config),
@@ -54,10 +63,13 @@ export class BugStatusService {
             this.cache.set(bugId, { status, timestamp: Date.now() });
             return status;
         } catch (error) {
+            console.error('Error fetching bug status:', error);
             const errorStatus: BugStatus = {
                 id: bugId,
                 status: 'Error',
-                error: error instanceof Error ? error.message : 'Unknown error'
+                error: error instanceof Error ? 
+                    (error.message || 'Unknown error') : 
+                    'Unknown error'
             };
             this.cache.set(bugId, { status: errorStatus, timestamp: Date.now() });
             return errorStatus;
