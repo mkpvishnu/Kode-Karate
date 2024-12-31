@@ -48,6 +48,37 @@
                 "configuration": "./language-configuration.json"
             }
         ],
+        "configuration": {
+            "title": "Karate Bug Explorer",
+            "properties": {
+                "karateRunner.bugTracker.apiEndpoint": {
+                    "type": "string",
+                    "default": "",
+                    "description": "API endpoint for bug status. Use {{id}} as placeholder for the bug ID."
+                },
+                "karateRunner.bugTracker.method": {
+                    "type": "string",
+                    "enum": ["GET", "POST"],
+                    "default": "GET",
+                    "description": "HTTP method for the API call"
+                },
+                "karateRunner.bugTracker.headers": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Headers to be sent with the API request"
+                },
+                "karateRunner.bugTracker.payload": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Request payload template for POST requests. Use {{id}} as placeholder."
+                },
+                "karateRunner.bugTracker.idPattern": {
+                    "type": "string",
+                    "default": "@bug/{{id}}",
+                    "description": "Pattern to identify bug IDs in feature files. Use {{id}} as placeholder."
+                }
+            }
+        },
         "grammars": [
             {
                 "language": "karate",
@@ -56,6 +87,26 @@
             }
         ],
         "commands": [
+            {
+                "command": "karateBugExplorer.refresh",
+                "title": "Refresh Bugs",
+                "icon": "$(refresh)"
+            },
+            {
+                "command": "karateBugExplorer.configure",
+                "title": "Configure Bug Tracker",
+                "icon": "$(gear)"
+            },
+            {
+                "command": "karateBugExplorer.runScenario",
+                "title": "Run Scenario",
+                "icon": "$(play)"
+            },
+            {
+                "command": "karateBugExplorer.openBugLink",
+                "title": "Open Bug Link",
+                "icon": "$(link-external)"
+            },
             {
                 "command": "karateFeatureExplorer.runFeature",
                 "title": "Run Feature",
@@ -127,6 +178,11 @@
                     "id": "karateUtilities",
                     "name": "Utilities",
                     "icon": "resources/tools.svg"
+                },
+                {
+                    "id": "karateBugExplorer",
+                    "name": "Bug Explorer",
+                    "icon": "resources/bug.svg"
                 }
             ]
         },
@@ -139,6 +195,16 @@
                 }
             ],
             "view/title": [
+                {
+                    "command": "karateBugExplorer.refresh",
+                    "when": "view == karateBugExplorer",
+                    "group": "navigation@1"
+                },
+                {
+                    "command": "karateBugExplorer.configure",
+                    "when": "view == karateBugExplorer",
+                    "group": "navigation@2"
+                },
                 {
                     "command": "karateFeatureExplorer.refresh",
                     "when": "view == karateFeatureExplorer",
@@ -156,6 +222,16 @@
                 }
             ],
             "view/item/context": [
+                {
+                    "command": "karateBugExplorer.runScenario",
+                    "when": "viewItem == bug",
+                    "group": "inline@1"
+                },
+                {
+                    "command": "karateBugExplorer.openBugLink",
+                    "when": "viewItem == bug && view == karateBugExplorer",
+                    "group": "inline@2"
+                },
                 {
                     "command": "karateFeatureExplorer.runFeature",
                     "when": "viewItem == feature",
@@ -181,6 +257,7 @@
     "devDependencies": {
         "@types/vscode": "^1.60.0",
         "@types/node": "^16.11.7",
+        "@types/node-fetch": "^2.6.4",
         "@typescript-eslint/eslint-plugin": "^5.1.0",
         "@typescript-eslint/parser": "^5.1.0",
         "eslint": "^8.1.0",
@@ -191,7 +268,8 @@
     },
     "dependencies": {
         "glob": "^7.2.0",
-        "uuid": "^8.3.2"
+        "uuid": "^8.3.2",
+        "node-fetch": "^2.6.7"
     },
     "bundleDependencies": ["uuid", "glob"]
 }

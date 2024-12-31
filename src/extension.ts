@@ -1,4 +1,6 @@
 import * as vscode from 'vscode';
+import { BugExplorerProvider } from './views/bugExplorer/bugExplorerProvider';
+import { BugExplorerCommands } from './commands/bugExplorerCommands';
 import { KarateJarManager } from './jarManager';
 import { JavaFinder } from './javaFinder';
 import { KarateRunner } from './runners/karateRunner';
@@ -11,7 +13,6 @@ import { CurlConverterPanel } from './providers/CurlConverterPanel';
 import { ResponseDiffPanel } from './providers/ResponseDiffPanel';
 import { UtilitiesProvider } from './providers/UtilitiesProvider';
 import { JWTToolPanel } from './providers/JWTToolPanel';
-
 
 let outputChannel: vscode.OutputChannel;
 
@@ -71,6 +72,14 @@ export async function activate(context: vscode.ExtensionContext) {
             // Initialize Utilities View
             const utilitiesProvider = new UtilitiesProvider();
 
+            // Initialize Bug Explorer
+            const bugExplorerProvider = new BugExplorerProvider(workspaceFolder.uri.fsPath);
+            const bugExplorerView = vscode.window.createTreeView('karateBugExplorer', {
+                treeDataProvider: bugExplorerProvider,
+                showCollapseAll: true
+            });
+            const bugExplorerCommands = new BugExplorerCommands(bugExplorerProvider, context);
+
             // Register Tree Views
             const featureTreeView = vscode.window.createTreeView('karateFeatureExplorer', {
                 treeDataProvider: featureTreeProvider,
@@ -118,7 +127,7 @@ export async function activate(context: vscode.ExtensionContext) {
             );
 
             // Add tree views to subscriptions
-            context.subscriptions.push(featureTreeView, historyTreeView, utilitiesTreeView);
+            context.subscriptions.push(featureTreeView, historyTreeView, utilitiesTreeView, bugExplorerView);
 
             // Set providers in runner
             karateRunner.setViewProviders(null, null);
@@ -127,12 +136,15 @@ export async function activate(context: vscode.ExtensionContext) {
             const featureWatcher = vscode.workspace.createFileSystemWatcher('**/*.feature');
             featureWatcher.onDidCreate(() => {
                 vscode.commands.executeCommand('karateFeatureExplorer.refresh');
+                vscode.commands.executeCommand('karateBugExplorer.refresh');
             });
             featureWatcher.onDidDelete(() => {
                 vscode.commands.executeCommand('karateFeatureExplorer.refresh');
+                vscode.commands.executeCommand('karateBugExplorer.refresh');
             });
             featureWatcher.onDidChange(() => {
                 vscode.commands.executeCommand('karateFeatureExplorer.refresh');
+                vscode.commands.executeCommand('karateBugExplorer.refresh');
             });
             context.subscriptions.push(featureWatcher);
             log('Feature file watcher initialized');
