@@ -26,12 +26,17 @@ export class BugStatusService {
         try {
             const endpoint = this.replacePlaceholders(config.apiEndpoint, bugId);
             const payload = config.payload ? this.replacePlaceholders(config.payload, bugId) : undefined;
+            console.log(`Fetching bug status from ${endpoint}`);
+            console.log(`Payload: ${payload}`);
+            console.log(`Headers: ${JSON.stringify(config.headers)}`);
 
             const response = await fetch(endpoint, {
                 method: config.method,
                 headers: config.headers,
                 body: payload
             });
+            console.log(`Response status: ${response.status}`);
+            console.log(`Response body: ${response.body}`);
 
             if (!response.ok) {
                 throw new Error(`API request failed: ${response.statusText}`);

@@ -66,17 +66,40 @@
                 },
                 "karateRunner.bugTracker.responseParser": {
                     "type": "object",
-                    "default": {
-                        "statusPath": "status",
-                        "titlePath": "title",
-                        "linkPath": "url",
+                    "properties": {
+                        "statusPath": {
+                            "type": "string",
+                            "default": "issue.status_id",
+                            "description": "JSON path to status field in response"
+                        },
+                        "titlePath": {
+                            "type": "string",
+                            "default": "issue.title",
+                            "description": "JSON path to title field in response"
+                        },
+                        "linkPath": {
+                            "type": "string",
+                            "default": "issue.key",
+                            "description": "JSON path to link/key field in response"
+                        },
                         "statusMapping": {
-                            "DONE": "Closed",
-                            "IN_PROGRESS": "In Progress",
-                            "TODO": "Open"
+                            "type": "object",
+                            "additionalProperties": {
+                                "type": "string"
+                            },
+                            "default": {
+                                "18": "Open",
+                                "284": "In Progress",
+                                "119": "On Hold",
+                                "71": "Deferred",
+                                "289": "Invalid",
+                                "725": "Duplicate"
+                            },
+                            "description": "Mapping of API status values to display values"
                         }
                     },
-                    "description": "Configuration for parsing API response. Specify JSON paths and status mappings."
+                    "required": ["statusPath", "titlePath", "linkPath", "statusMapping"],
+                    "description": "Configuration for parsing API response"
                 }
             }
         },
@@ -93,37 +116,6 @@
                 "configuration": "./language-configuration.json"
             }
         ],
-        "configuration": {
-            "title": "Karate Bug Explorer",
-            "properties": {
-                "karateRunner.bugTracker.apiEndpoint": {
-                    "type": "string",
-                    "default": "",
-                    "description": "API endpoint for bug status. Use {{id}} as placeholder for the bug ID."
-                },
-                "karateRunner.bugTracker.method": {
-                    "type": "string",
-                    "enum": ["GET", "POST"],
-                    "default": "GET",
-                    "description": "HTTP method for the API call"
-                },
-                "karateRunner.bugTracker.headers": {
-                    "type": "object",
-                    "default": {},
-                    "description": "Headers to be sent with the API request"
-                },
-                "karateRunner.bugTracker.payload": {
-                    "type": "string",
-                    "default": "",
-                    "description": "Request payload template for POST requests. Use {{id}} as placeholder."
-                },
-                "karateRunner.bugTracker.idPattern": {
-                    "type": "string",
-                    "default": "@bug/{{id}}",
-                    "description": "Pattern to identify bug IDs in feature files. Use {{id}} as placeholder."
-                }
-            }
-        },
         "grammars": [
             {
                 "language": "karate",

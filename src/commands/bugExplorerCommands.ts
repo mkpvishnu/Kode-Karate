@@ -57,17 +57,28 @@ export class BugExplorerCommands {
         );
 
         const config = vscode.workspace.getConfiguration();
+        console.log('Loading configuration...');  // Debug log
+
         const apiEndpoint = config.get('karateRunner.bugTracker.apiEndpoint', '');
         const method = config.get('karateRunner.bugTracker.method', 'GET');
         const headers = config.get('karateRunner.bugTracker.headers', {});
         const payload = config.get('karateRunner.bugTracker.payload', '');
         const idPattern = config.get('karateRunner.bugTracker.idPattern', '@bug/{{id}}');
         const responseParser = config.get('karateRunner.bugTracker.responseParser', {
-            statusPath: 'status',
-            titlePath: 'title',
-            linkPath: 'url',
-            statusMapping: {}
+            statusPath: 'issues[0].status_id',
+            titlePath: 'issues[0].title',
+            linkPath: 'issues[0].key',
+            statusMapping: {
+                'Open': 'Open',
+                'Dev In Progress': 'In Progress',
+                'On Hold': 'Blocked',
+                'Deferred': 'Deferred',
+                'Invalid': 'Closed',
+                'Duplicate': 'Closed'
+            }
         });
+
+        console.log('Loaded responseParser:', responseParser);  // Debug log
 
         panel.webview.html = `
             <!DOCTYPE html>
@@ -162,19 +173,27 @@ export class BugExplorerCommands {
                     const vscode = acquireVsCodeApi();
 
                     function getConfig() {
-                        return {
-                            apiEndpoint: document.getElementById('apiEndpoint').value,
-                            method: document.getElementById('method').value,
-                            headers: JSON.parse(document.getElementById('headers').value || '{}'),
-                            payload: document.getElementById('payload').value,
-                            idPattern: document.getElementById('idPattern').value,
-                            responseParser: {
-                                statusPath: document.getElementById('statusPath').value,
-                                titlePath: document.getElementById('titlePath').value,
-                                linkPath: document.getElementById('linkPath').value,
-                                statusMapping: JSON.parse(document.getElementById('statusMapping').value || '{}')
-                            }
-                        };
+                        try {
+                            const statusMapping = JSON.parse(document.getElementById('statusMapping').value || '{}');
+                            console.log('Parsed statusMapping:', statusMapping);  // Debug log
+
+                            return {
+                                apiEndpoint: document.getElementById('apiEndpoint').value,
+                                method: document.getElementById('method').value,
+                                headers: JSON.parse(document.getElementById('headers').value || '{}'),
+                                payload: document.getElementById('payload').value,
+                                idPattern: document.getElementById('idPattern').value,
+                                responseParser: {
+                                    statusPath: document.getElementById('statusPath').value,
+                                    titlePath: document.getElementById('titlePath').value,
+                                    linkPath: document.getElementById('linkPath').value,
+                                    statusMapping: statusMapping
+                                }
+                            };
+                        } catch (error) {
+                            console.error('Error in getConfig:', error);  // Debug log
+                            throw error;
+                        }
                     }
 
                     function saveConfig() {
@@ -236,12 +255,27 @@ export class BugExplorerCommands {
 
     private async updateConfiguration(config: any): Promise<void> {
         const configuration = vscode.workspace.getConfiguration();
+        console.log('Saving responseParser:', config.responseParser);  // Debug log
+
+        // Update each setting individually
         await configuration.update('karateRunner.bugTracker.apiEndpoint', config.apiEndpoint, vscode.ConfigurationTarget.Workspace);
         await configuration.update('karateRunner.bugTracker.method', config.method, vscode.ConfigurationTarget.Workspace);
         await configuration.update('karateRunner.bugTracker.headers', config.headers, vscode.ConfigurationTarget.Workspace);
         await configuration.update('karateRunner.bugTracker.payload', config.payload, vscode.ConfigurationTarget.Workspace);
         await configuration.update('karateRunner.bugTracker.idPattern', config.idPattern, vscode.ConfigurationTarget.Workspace);
-        await configuration.update('karateRunner.bugTracker.responseParser', config.responseParser, vscode.ConfigurationTarget.Workspace);
+        
+        // Save response parser configuration
+        const responseParser = {
+            statusPath: config.responseParser.statusPath,
+            titlePath: config.responseParser.titlePath,
+            linkPath: config.responseParser.linkPath,
+            statusMapping: config.responseParser.statusMapping
+        };
+        await configuration.update('karateRunner.bugTracker.responseParser', responseParser, vscode.ConfigurationTarget.Workspace);
+        
+        // Verify saved configuration
+        const savedConfig = vscode.workspace.getConfiguration('karateRunner.bugTracker');
+        console.log('Saved configuration:', savedConfig.get('responseParser'));  // Debug log
     }
 
     private async testConnection(config: any): Promise<void> {
