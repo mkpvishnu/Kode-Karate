@@ -3,6 +3,7 @@
 src/**
 .gitignore
 .yarnrc
+webpack.config.js
 vsc-extension-quickstart.md
 **/tsconfig.json
 **/.eslintrc.json
@@ -14,4 +15,5 @@ out/test/**
 !python/**
 node_modules/**
 !node_modules/uuid/**
+!node_modules/glob/**
 target/**
