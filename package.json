@@ -35,6 +35,51 @@
     ],
     "main": "./out/extension.js",
     "contributes": {
+        "configuration": {
+            "title": "Karate Bug Explorer",
+            "properties": {
+                "karateRunner.bugTracker.apiEndpoint": {
+                    "type": "string",
+                    "default": "",
+                    "description": "API endpoint for bug status. Use {{id}} as placeholder for the bug ID."
+                },
+                "karateRunner.bugTracker.method": {
+                    "type": "string",
+                    "enum": ["GET", "POST"],
+                    "default": "GET",
+                    "description": "HTTP method for the API call"
+                },
+                "karateRunner.bugTracker.headers": {
+                    "type": "object",
+                    "default": {},
+                    "description": "Headers to be sent with the API request"
+                },
+                "karateRunner.bugTracker.payload": {
+                    "type": "string",
+                    "default": "",
+                    "description": "Request payload template for POST requests. Use {{id}} as placeholder."
+                },
+                "karateRunner.bugTracker.idPattern": {
+                    "type": "string",
+                    "default": "@bug/{{id}}",
+                    "description": "Pattern to identify bug IDs in feature files. Use {{id}} as placeholder."
+                },
+                "karateRunner.bugTracker.responseParser": {
+                    "type": "object",
+                    "default": {
+                        "statusPath": "status",
+                        "titlePath": "title",
+                        "linkPath": "url",
+                        "statusMapping": {
+                            "DONE": "Closed",
+                            "IN_PROGRESS": "In Progress",
+                            "TODO": "Open"
+                        }
+                    },
+                    "description": "Configuration for parsing API response. Specify JSON paths and status mappings."
+                }
+            }
+        },
         "languages": [
             {
                 "id": "karate",

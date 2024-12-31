@@ -40,9 +40,9 @@ export class BugStatusService {
             const data = await response.json();
             const status: BugStatus = {
                 id: bugId,
-                status: this.extractStatus(data),
-                title: this.extractTitle(data),
-                link: this.extractLink(data)
+                status: this.extractStatus(data, config),
+                title: this.extractTitle(data, config),
+                link: this.extractLink(data, config)
             };
 
             // Update cache
@@ -63,18 +63,32 @@ export class BugStatusService {
         return template.replace(/{{id}}/g, bugId);
     }
 
-    private extractStatus(data: any): string {
-        // This method should be customized based on the API response structure
-        // For now, we'll assume a simple structure
-        return data.status || data.state || 'Unknown';
+    private getValueFromPath(data: any, path: string): any {
+        const parts = path.split('.');
+        let value = data;
+        
+        for (const part of parts) {
+            if (value === null || value === undefined) return undefined;
+            value = value[part];
+        }
+        
+        return value;
     }
 
-    private extractTitle(data: any): string | undefined {
-        return data.title || data.summary || undefined;
+    private extractStatus(data: any, config: BugConfig): string {
+        const rawStatus = this.getValueFromPath(data, config.responseParser.statusPath);
+        if (!rawStatus) return 'Unknown';
+
+        // Apply status mapping if exists
+        return config.responseParser.statusMapping[rawStatus] || rawStatus;
     }
 
-    private extractLink(data: any): string | undefined {
-        return data.url || data.link || undefined;
+    private extractTitle(data: any, config: BugConfig): string | undefined {
+        return this.getValueFromPath(data, config.responseParser.titlePath);
+    }
+
+    private extractLink(data: any, config: BugConfig): string | undefined {
+        return this.getValueFromPath(data, config.responseParser.linkPath);
     }
 
     public clearCache(): void {

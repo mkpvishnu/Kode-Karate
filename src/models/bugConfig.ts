@@ -1,7 +1,15 @@
+export interface ResponseParser {
+    statusPath: string;
+    titlePath: string;
+    linkPath: string;
+    statusMapping: { [key: string]: string };
+}
+
 export interface BugConfig {
     apiEndpoint: string;
     headers: { [key: string]: string };
     idPattern: string;
+    responseParser: ResponseParser;
     method: 'GET' | 'POST';
     payload?: string;
 }

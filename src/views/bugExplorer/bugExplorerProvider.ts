@@ -18,13 +18,19 @@ export class BugExplorerProvider implements vscode.TreeDataProvider<BugItem> {
     }
 
     private loadConfiguration(): void {
-        const config = vscode.workspace.getConfiguration('karateRunner.bugTracker');
+        const config = vscode.workspace.getConfiguration();
         this.config = {
-            apiEndpoint: config.get('apiEndpoint', ''),
-            headers: config.get('headers', {}),
-            idPattern: config.get('idPattern', '@bug/{{id}}'),
-            method: config.get('method', 'GET'),
-            payload: config.get('payload', '')
+            apiEndpoint: config.get('karateRunner.bugTracker.apiEndpoint', ''),
+            headers: config.get('karateRunner.bugTracker.headers', {}),
+            idPattern: config.get('karateRunner.bugTracker.idPattern', '@bug/{{id}}'),
+            method: config.get('karateRunner.bugTracker.method', 'GET') as 'GET' | 'POST',
+            payload: config.get('karateRunner.bugTracker.payload', ''),
+            responseParser: config.get('karateRunner.bugTracker.responseParser', {
+                statusPath: 'status',
+                titlePath: 'title',
+                linkPath: 'url',
+                statusMapping: {}
+            })
         };
     }
 

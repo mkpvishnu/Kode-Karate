@@ -110,6 +110,62 @@ A comprehensive JWT (JSON Web Token) encoder and decoder similar to jwt.io:
    - Format JSON functionality for easy editing
    - Copy generated token with one click
 
+## Bug Explorer
+#### Configurable JSON paths for:
+
+- Status field
+- Title field
+- Link field
+
+#### Status mapping to translate API-specific statuses to desired display values:
+
+```json
+{
+  "IN_PROGRESS": "In Progress",
+  "DONE": "Closed",
+  "TODO": "Open"
+}
+```
+
+#### Supports nested paths using dot notation:
+
+```
+data.status
+fields.summary.text
+_embedded.issue.status
+```
+
+
+#### Example usage for different bug trackers:
+
+##### For Jira:
+
+```json
+jsonCopy{
+  "statusPath": "fields.status.name",
+  "titlePath": "fields.summary",
+  "linkPath": "self",
+  "statusMapping": {
+    "In Progress": "In Progress",
+    "Done": "Closed",
+    "To Do": "Open"
+  }
+}
+```
+
+##### For GitHub Issues:
+```json
+jsonCopy{
+  "statusPath": "state",
+  "titlePath": "title",
+  "linkPath": "html_url",
+  "statusMapping": {
+    "open": "Open",
+    "closed": "Closed"
+  }
+}
+```
+
 ## Extension Settings
 
 The extension automatically manages most settings, but you can configure:
